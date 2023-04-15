@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4004337 */
-  src: url('@/static/font/iconfont.woff2?t=1681440114513') format('woff2'),
-       url('@/static/font/iconfont.woff?t=1681440114513') format('woff'),
-       url('@/static/font/iconfont.ttf?t=1681440114513') format('truetype');
+  src: url('@/static/font/iconfont.woff2?t=1681543689755') format('woff2'),
+       url('@/static/font/iconfont.woff?t=1681543689755') format('woff'),
+       url('@/static/font/iconfont.ttf?t=1681543689755') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,70 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-commentfill:before {
+  content: "\e666";
+}
+
+.icon-deletefill:before {
+  content: "\e6a6";
+}
+
+.icon-delete:before {
+  content: "\e6b4";
+}
+
+.icon-add:before {
+  content: "\e6da";
+}
+
+.icon-apps:before {
+  content: "\e729";
+}
+
+.icon-warn_light:before {
+  content: "\e811";
+}
+
+.icon-icon-test:before {
+  content: "\e635";
+}
+
+.icon-icon-test1:before {
+  content: "\e636";
+}
+
+.icon-icon-test2:before {
+  content: "\e658";
+}
+
+.icon-icon-test3:before {
+  content: "\e659";
+}
+
+.icon-icon-test4:before {
+  content: "\e65a";
+}
+
+.icon-icon-test5:before {
+  content: "\e65b";
+}
+
+.icon-icon-test6:before {
+  content: "\e65e";
+}
+
+.icon-icon-test7:before {
+  content: "\e65f";
+}
+
+.icon-icon-test8:before {
+  content: "\e660";
+}
+
+.icon-icon-test9:before {
+  content: "\e662";
 }
 
 .icon-shezhi:before {

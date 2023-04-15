@@ -19,7 +19,7 @@
 		<yingbing-ReadPage style="height: 100%;" ref="page" :page-type="pageType" :font-size="fontsize"
 			:line-height="lineHeight" :color="color" :bg-color="bgColor" :slide="slide" :enablePreload="enablePreload"
 			:enableClick="enableClick" :clickOption="clickOption" @preload="preloadContent" @clickTo="clickTo"
-			@change="currentChange"  @loadmore="loadmoreContent">
+			@change="currentChange" @loadmore="loadmoreContent">
 		</yingbing-ReadPage>
 	</view>
 </template>
@@ -54,10 +54,10 @@
 				},
 				title: '', //文章标题
 				id: '', // 文章id
-				index: null, 	//当前最新文章index
-				show: true, 	//控制设置窗口的显示预隐藏
-				oldIndex:null, 	//点击目录章节，返回上一页改变
-				BoolIf:true		//控制只有翻到上一页才请求数据
+				index: null, //当前最新文章index
+				show: true, //控制设置窗口的显示预隐藏
+				oldIndex: null, //点击目录章节，返回上一页改变
+				BoolIf: true //控制只有翻到上一页才请求数据
 			}
 		},
 		async onReady() {
@@ -84,15 +84,17 @@
 			this.title = e.title
 			this.index = e.index
 			this.oldIndex = e.index
-			// this.getContent(e.id);
+			// #ifdef APP-PLUS
+			plus.navigator.setFullscreen(true) //隐藏状态栏
+			// #endif
 		},
 		methods: {
 			//监听翻页事件
 			currentChange(e) {
 				this.currentPage = e.currentPage
 				this.totalPage = e.totalPage
-				if(e.currentPage == 0){
-					this.BoolIf=false
+				if (e.currentPage == 0) {
+					this.BoolIf = false
 				}
 			},
 			setCatalog(e) {
@@ -100,13 +102,13 @@
 				console.log(e);
 			},
 			//加载上一章节内容
-			loadmoreContent(chapter,callback) {
-				if(this.BoolIf){
+			loadmoreContent(chapter, callback) {
+				if (this.BoolIf) {
 					return;
 				}
 				let classArticle = new articleDataPreloading(this.$store.state.article.articleID);
 				chapter = classArticle.findPreviousByindex(this.oldIndex);
-				setTimeout( async () => {
+				setTimeout(async () => {
 					callback('success', {
 						chapter: chapter.index,
 						content: await this.getContent(chapter.chapterId),
@@ -160,7 +162,7 @@
 				}
 			},
 			//返回到详情页
-			goBack(){
+			goBack() {
 				uni.navigateBack({
 					delta: 1
 				})
