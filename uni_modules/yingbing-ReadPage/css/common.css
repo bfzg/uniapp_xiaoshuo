@@ -1,0 +1,71 @@
+.yb-flex {
+	/* #ifndef APP-NVUE */
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	overflow: hidden;
+	flex-shrink: 0;
+	background: none;
+	flex-wrap: nowrap;
+	/* #endif */
+}
+.yb-flex-1 {
+	flex: 1!important;
+}
+.yb-wrap {
+	flex-wrap: wrap!important;
+}
+.yb-row {
+	flex-direction: row!important;
+}
+.yb-column {
+	flex-direction: column!important;
+}
+.yb-row-reverse {
+	flex-direction: row-reverse!important;
+}
+.yb-column-reverse {
+	flex-direction: column-reverse!important;
+}
+.yb-align-center {
+	align-items: center!important;
+}
+.yb-align-start {
+	align-items: flex-start!important;
+}
+.yb-align-end {
+	align-items: flex-end!important;
+}
+.yb-align-between {
+	align-content: space-between!important;
+}
+.yb-justify-center {
+	justify-content: center!important;
+}
+.yb-justify-start {
+	justify-content: flex-start!important;
+}
+.yb-justify-end {
+	justify-content: flex-end!important;
+}
+.yb-justify-between {
+	justify-content: space-between!important;
+}
+/* #ifdef MP */
+.scoped-ref {
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	overflow: hidden;
+	flex-shrink: 0;
+	background: none;
+	flex-wrap: nowrap;
+	flex: 1;
+}
+.yb-tap view:nth-child(n+2) {
+	position: relative;
+}
+.yb-tap text:nth-child(n+1) {
+	position: relative;
+}
+/* #endif */

@@ -1,0 +1,69 @@
+<html>
+	<head>
+		<meta
+		  name="viewport"
+		  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, viewport-fit=cover"
+		/>
+		<title>富文本展示</title>
+		<style type="text/css">
+			html,body {
+				margin: 0;
+				padding: 0;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
+			.content {
+				color: #333;
+				width: 100%;
+				height: 100%;
+			}
+			.content img {
+				max-width: 100%!important;
+			}
+		</style>
+	</head>
+	<body>
+		<p id="content" class="content"></p>
+	</body>
+	<script type="text/javascript" src="./js/uni-webview-js@1.5.4.js"></script>
+	<script type="text/javascript">
+		var obj = {}
+		window.onload = function () {
+			var search = window.location.search.slice(1);
+			var arr = search.split('&');
+			for ( var i = 0; i < arr.length; i++ ) {
+				var strs = arr[i].split('=');
+				obj[strs[0]] = strs[1];
+			}
+			if ( obj.rich ) {
+				setRichText(JSON.parse(decodeURIComponent(obj.rich)));
+				if ( obj.pageType == 'scroll' ) {
+					window.setTimeout(function () {
+						uni.postMessage({
+						    data: {
+						        height: document.getElementById('content').scrollHeight + 100
+						    }
+						});
+					}, 100)
+				}
+			}
+		}
+		function setStyle (attribute, value) {
+			document.getElementById('content').style[attribute] = value
+		}
+		function setRichText (richText) {
+			document.getElementById('content').innerHTML = richText
+		}
+		function triggerCustomClick (name, args) {
+			uni.postMessage({
+				data: {
+					customClick: {
+						name: name,
+						args: args
+					}
+				}
+			});
+		}
+	</script>
+</html>

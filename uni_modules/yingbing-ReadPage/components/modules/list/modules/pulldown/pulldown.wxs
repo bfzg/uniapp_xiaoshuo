@@ -1,0 +1,95 @@
+var max = 200
+function touchstart(event, ins) {
+	var state = ins.getState()
+	if ( !state.enablePulldown ) {
+		return
+	}
+	var touch = event.touches[0] || event.changedTouches[0]
+	state.startX = touch.pageX
+	state.startY = touch.pageY
+}
+function touchmove(event, ins) {
+	var state = ins.getState()
+	if ( state.startY > 0) {
+		var touch = event.touches[0] || event.changedTouches[0]
+		if ((Math.abs(touch.pageY - state.startY) > Math.abs(touch.pageX - state.startX)) && Math.abs(touch.pageY -
+				state.startY) > 20) {
+			var pageY = touch.pageY
+			var rate = max / (max + Math.abs(pageY - state.startY))
+			state.threshold = rate * (pageY - state.startY)
+			if ( state.threshold > max ) {
+				state.threshold = max
+			}
+			if ( state.threshold < -max ) {
+				state.threshold = -max
+			}
+			ins.selectComponent('.yb-pulldown-scroller').setStyle({
+				transform: 'translateY(' + state.threshold + 'px)',
+				transition: ''
+			})
+			ins.selectComponent('.yb-list-pulldown').setStyle({
+				transform: 'translateY(' + state.threshold + 'px)',
+				transition: ''
+			})
+			if ( state.threshold > 0 ) {
+				ins.callMethod('pullingdown', state.threshold)
+			} else {
+				ins.callMethod('pullingup', Math.abs(state.threshold))
+			}
+		}
+	}
+}
+function touchend(event, ins) {
+	var state = ins.getState()
+	if ( state.threshold > 120 && state.enablePulldown ) {
+		ins.selectComponent('.yb-pulldown-scroller').setStyle({
+			transform: 'translateY(120px)',
+			transition: 'transform .1s'
+		})
+		ins.selectComponent('.yb-list-pulldown').setStyle({
+			transform: 'translateY(120px)',
+			transition: 'transform .1s'
+		})
+		ins.callMethod('refresh')
+	} else {
+		ins.selectComponent('.yb-pulldown-scroller').setStyle({
+			transform: 'translateY(0)',
+			transition: 'transform .1s'
+		})
+		ins.selectComponent('.yb-list-pulldown').setStyle({
+			transform: 'translateY(0)',
+			transition: 'transform .1s'
+		})
+	}
+}
+function stop (ins) {
+	var state = ins.getState()
+	ins.selectComponent('.yb-pulldown-scroller').setStyle({
+		transform: 'translateY(0)',
+		transition: 'transform .1s'
+	})
+	ins.selectComponent('.yb-list-pulldown').setStyle({
+		transform: 'translateY(0)',
+		transition: 'transform .1s'
+	})
+	state.threshold = 0
+	state.startY = 0
+	ins.callMethod('resetPulldownIns')
+}
+function propWatcher (newVal, oldVal, ins) {
+	ins.setTimeout(function () {
+		var state = ins.getState()
+		state.enablePulldown = (newVal && newVal.enablePulldown)
+		if ( (newVal && newVal.pulldownRestore) != (oldVal && oldVal.pulldownRestore) ) {
+			if ( newVal.pulldownRestore ) {
+				stop(ins)
+			}
+		}
+	}, 100)
+}
+module.exports = {
+	propWatcher: propWatcher,
+	touchstart: touchstart,
+	touchmove: touchmove,
+	touchend: touchend
+}

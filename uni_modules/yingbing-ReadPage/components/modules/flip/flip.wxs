@@ -1,0 +1,208 @@
+function touchstart (event, ins) {
+	var state = ins.getState()
+	if ( state.isTouch || state.disableTouch ) {
+		return
+	}
+	state.isTouch = true
+	state.touchTime = 0
+	state.interval = true
+	setInterval(ins)
+	var touch = event.touches[0]
+	state.startX = touch.pageX
+	state.startY = touch.pageY
+}
+function touchmove (event, ins) {
+	event.preventDefault && event.preventDefault()
+	var state = ins.getState()
+	if ( state.isTouch && (state.pageType == 'real' || state.pageType == 'cover') && !state.disableTouch ) {
+		var touch = event.touches[0]
+		if (state.direction) {
+			var rect = ins.getBoundingClientRect()
+			var height = rect.height / 2;
+			var maxDeg = height / 5;
+			state.rotate = state.direction == 'next' ? ((touch.pageY - height) / maxDeg) : -((touch.pageY - height) / maxDeg);
+			state.offset = touch.pageX - state.startX;
+			if ( (state.offset > 0 && state.direction == 'next') || (state.offset < 0 && state.direction == 'prev') ) {
+				state.offset = 0
+			}
+			if ( Math.abs(state.offset) <= rect.width ) {
+				animation(state.offset, 0, ins)
+			}
+		} else {
+			if ( touch.pageX < state.startX ) {
+				if ( state.nextDataId ) {
+					state.direction = 'next'
+				}
+			} else {
+				if ( state.prevDataId ) {
+					state.direction = 'prev'
+				}
+			}
+		}
+	}
+}
+function touchend (event, ins) {
+	var state = ins.getState()
+	clearInterval(ins)
+	if ( state.isTouch && !state.disableTouch ) {
+		var rect = ins.getBoundingClientRect()
+		if ( !state.direction && state.touchTime <= 200 ) {
+			//获取点击位置，判断向哪里翻页
+			if (state.startX > (rect.width / 4) * 3) {
+				if ( state.nextDataId ) {
+					state.direction = 'next'
+				}
+			}
+			if (state.startX < (rect.width / 4)) {
+				if ( state.prevDataId ) {
+					state.direction = 'prev'
+				}
+			}
+		}
+		if (state.direction) {
+			state.disableTouch = true
+			if (state.touchTime <= 200) {
+				var duration = (state.pageType == 'real' || state.pageType == 'cover') ? 200 : 0
+				var value = state.direction == 'next' ? 1 : -1;
+				animation(-value * rect.width, duration, ins);
+				ins.setTimeout(function () {
+					reset(-value * rect.width, ins);
+					ins.callMethod('onChange', value > 0 ? state.nextDataId : state.prevDataId)
+				}, duration)
+			} else {
+				var duration = (state.pageType == 'real' || state.pageType == 'cover') ? 100 : 0
+				if (Math.abs(state.offset) >= rect.width / 4) {
+					var value = state.direction == 'next' ? 1 : -1;
+					animation(-value * rect.width, duration, ins);
+					ins.setTimeout(function () {
+						reset(-value * rect.width, ins);
+						ins.callMethod('onChange', value > 0 ? state.nextDataId : state.prevDataId)
+					}, duration)
+				} else {
+					animation(0, duration, ins);
+					ins.setTimeout(function () {
+						reset(0, ins);
+					}, duration)
+				}
+			}
+		} else {
+			reset(0, ins)
+		}
+	}
+}
+function propWatcher (newVal, oldVal, ins) {
+	if ( oldVal ) {
+		var state = ins.getState()
+		state.currentDataId = newVal.currentDataId
+		state.prevDataId = newVal.prevDataId
+		state.nextDataId = newVal.nextDataId
+		state.pageType = newVal.pageType
+		if (newVal.pageTo != oldVal.pageTo) {
+			if ( !state.disableTouch ) {
+				if ( newVal.pageTo == -1 && state.prevDataId ) {
+					state.isTouch = true
+					state.startX = 1
+					state.touchTime = 0
+					state.direction = 'prev'
+					touchend(null, ins)
+				}
+				if ( newVal.pageTo == 1 && state.nextDataId ) {
+					state.isTouch = true
+					var rect = ins.getBoundingClientRect()
+					state.startX = rect.width
+					state.touchTime = 0
+					state.direction = 'next'
+					touchend(null, ins)
+				}
+			}
+		}
+	}
+}
+function setInterval (ins) {
+	var state = ins.getState()
+	state.touchTimer = ins.setTimeout(function () {
+		state.touchTime += 10
+		if ( state.interval ) {
+			setInterval(ins)
+		}
+	}, 10)
+}
+function clearInterval (ins) {
+	var state = ins.getState()
+	state.interval = false
+	if ( state.touchTimer ) {
+		ins.clearTimeout(state.touchTimer)
+		state.touchTimer = null
+	}
+}
+function reset (offset, ins) {
+	var state = ins.getState()
+	var rect = ins.getBoundingClientRect()
+	if ( state.direction ) {
+		var late = state.direction == 'next' ? offset : offset - rect.width;
+		var currentDataId = state.direction == 'next' ? state.currentDataId : state.prevDataId
+		if ( currentDataId ) {
+			var draw = function () {
+				ins.selectComponent('.flip-item_' + currentDataId).setStyle({
+					transform: 'translateX(' + late + 'px)',
+					'box-shadow': '',
+					transition: ''
+				})
+				if ( state.pageType == 'real' ) {
+					ins.selectComponent('.flip-item-bg_' + currentDataId).setStyle({
+						transform: 'translateX(' + late + 'px) rotateZ(' + state.rotate + 'deg)',
+						'box-shadow': '',
+						transition: ''
+					})
+				}
+				ins.selectComponent('.flip-item-shadow_' + currentDataId).setStyle({
+					'box-shadow': '',
+					transition: ''
+				})
+			}
+			ins.requestAnimationFrame(draw)
+		}
+	}
+	state.direction = null
+	state.isTouch = false
+	state.disableTouch = false
+	state.offset = 0
+	state.touchTime = 0
+	state.startX = 0
+	state.startY = 0
+}
+function animation (offset, duration, ins) {
+	var state = ins.getState()
+	var rect = ins.getBoundingClientRect()
+	var late = state.direction == 'next' ? offset : offset - rect.width;
+	var currentDataId = state.direction == 'next' ? state.currentDataId : state.prevDataId
+	var draw = function () {
+		ins.selectComponent('.flip-item_' + currentDataId).setStyle({
+			transform: 'translateX(' + late + 'px)',
+			'box-shadow': state.pageType == 'real' ? '0 0 30px 20px rgba(0,0,0,0.4)' : state.pageType == 'cover' ? '0 0 10px 5px rgba(0,0,0,0.3)' : '',
+			transition: duration > 0 ? 'transform ' + duration + 'ms' : ''
+		})
+		if ( state.pageType == 'real' ) {
+			ins.selectComponent('.flip-item-wrapper_' + currentDataId).setStyle({
+				transform: 'translateX(' + (-late) + 'px)',
+				transition: duration > 0 ? 'transform ' + duration + 'ms' : ''
+			})
+			ins.selectComponent('.flip-item-bg_' + currentDataId).setStyle({
+				transform: 'translateX(' + late + 'px) rotateZ(' + state.rotate + 'deg)',
+				'box-shadow': '-5px 0 20px rgba(0,0,0,0.1)',
+				transition: duration > 0 ? 'transform ' + duration + 'ms, ' + 'boxShadow ' + duration + 'ms' : ''
+			})
+			ins.selectComponent('.flip-item-shadow_' + currentDataId).setStyle({
+				'box-shadow': '0 0 60px 30px rgba(0,0,0,0.4)',
+				transition: duration > 0 ? 'boxShadow ' + duration + 'ms' : ''
+			})
+		}
+	}
+	ins.requestAnimationFrame(draw)
+}
+module.exports = {
+	touchstart: touchstart,
+	touchmove: touchmove,
+	touchend: touchend,
+	propWatcher: propWatcher
+}

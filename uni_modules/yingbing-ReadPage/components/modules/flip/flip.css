@@ -1,0 +1,135 @@
+.yingbing-read-page-flip {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+}
+.yingbing-flip {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	/* #ifndef APP-NVUE */
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	/* #endif */
+}
+.flip-item {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	/* #ifndef APP-NVUE */
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	/* #endif */
+}
+.flip-item-wrapper {
+	position: absolute;
+	top: 0;
+	left: 0;
+	bottom: 0;
+	right: 0;
+	/* #ifndef APP-NVUE */
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	/* #endif */
+}
+.flip-item-header {
+	/* #ifndef APP-NVUE */
+	display: flex;
+	flex-direction: column;
+	box-sizing: border-box;
+	/* #endif */
+	justify-content: center;
+	height: 50rpx;
+	overflow: hidden;
+}
+.flip-item-header-text {
+	font-size: 24rpx;
+	opacity: .4;
+	font-weight: bold;
+	/* #ifdef APP-NVUE */
+	lines: 1;
+	text-overflow: ellipsis;
+	/* #endif */
+	/* #ifndef APP-NVUE */
+	display: -webkit-box !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	word-break: break-all;
+	-webkit-box-orient:vertical;
+	-webkit-line-clamp: 1;
+	/* #endif */
+}
+.flip-item-footer {
+	/* #ifndef APP-NVUE */
+	display: flex;
+	box-sizing: border-box;
+	/* #endif */
+	align-items: center;
+	flex-direction: row;
+	justify-content: space-between;
+	height: 50rpx;
+	overflow: hidden;
+}
+.flip-item-footer-text {
+	font-size: 24rpx;
+	opacity: .4;
+	font-weight: bold;
+}
+.flip-item-content {
+	flex: 1;
+	/* #ifndef APP-NVUE */
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	/* #endif */
+}
+.flip-item-text {
+	/* #ifndef APP-NVUE */
+	display: flex;
+	flex-direction: column;
+	/* #endif */
+},
+.flip-text {
+	/* #ifndef APP-NVUE */
+	box-sizing: border-box;
+	white-space: pre-wrap;
+	font-family: Microsoft YaHei, 微软雅黑;
+	/* #endif */
+}
+.flip-loading {
+	/* #ifndef APP-NVUE */
+	display: flex;
+	/* #endif */
+	align-items: center;
+	justify-content: center;
+}
+.flip-item-bg {
+	position: absolute;
+	/* #ifdef APP-NVUE */
+	box-shadow: 0 20rpx 20rpx rgba(0,0,0,0.2);
+	/* #endif */
+}
+.flip-item-shadow {
+	position: absolute;
+	width: 0;
+	top: 0;
+	bottom: 0;
+	right: 0;
+	/* #ifdef APP-NVUE */
+	background-image: linear-gradient(to right, rgba(255,255,255, 0), rgba(0,0,0,.5));
+	opacity: 0.5;
+	/* #endif */
+}

@@ -1,0 +1,99 @@
+.yingbing-scroll {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	/* #ifndef APP-NVUE */
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	/* #endif */
+}
+.scroll-wrapper {
+	/* #ifndef APP-NVUE */
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	/* #endif */
+	flex: 1;
+}
+.scroll-item {
+	/* #ifndef APP-NVUE */
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	/* #endif */
+}
+.scroll-item-content {
+	/* #ifndef APP-NVUE */
+	box-sizing: border-box;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	/* #endif */
+	padding-bottom: 20rpx;
+}
+.scroll-text {
+	/* #ifndef APP-NVUE */
+	box-sizing: border-box;
+	white-space: pre-wrap;
+	font-family: Microsoft YaHei, 微软雅黑;
+	/* #endif */
+}
+.scroll-item-header {
+	/* #ifndef APP-NVUE */
+	display: flex;
+	box-sizing: border-box;
+	overflow: hidden;
+	/* #endif */
+	padding: 0 40rpx;
+	position: fixed;
+	left: 20rpx;
+	align-items: center;
+	flex-direction: row;
+	justify-content: space-between;
+	height: 50rpx;
+	background-color: rgba(0,0,0,.4);
+	border-radius: 50rpx;
+}
+.scroll-item-header-text {
+	font-size: 24rpx;
+	color: #fff;
+	/* #ifdef APP-NVUE */
+	lines: 1;
+	text-overflow: ellipsis;
+	/* #endif */
+	/* #ifndef APP-NVUE */
+	display: -webkit-box !important;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	word-break: break-all;
+	-webkit-box-orient:vertical;
+	-webkit-line-clamp: 1;
+	/* #endif */
+}
+.scroll-item-footer {
+	/* #ifndef APP-NVUE */
+	display: flex;
+	box-sizing: border-box;
+	overflow: hidden;
+	/* #endif */
+	padding: 0 40rpx;
+	position: fixed;
+	left: 20rpx;
+	right: 20rpx;
+	align-items: center;
+	flex-direction: row;
+	justify-content: space-between;
+	height: 50rpx;
+	background-color: rgba(0,0,0,.4);
+	border-radius: 50rpx;
+}
+.scroll-item-footer-text {
+	font-size: 24rpx;
+	color: #fff;
+}
