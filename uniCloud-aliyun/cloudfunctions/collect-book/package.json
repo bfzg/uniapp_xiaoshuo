@@ -1,0 +1,7 @@
+{
+  "name": "collect-book",
+  "dependencies": {},
+  "extensions": {
+    "uni-cloud-jql": {}
+  }
+}

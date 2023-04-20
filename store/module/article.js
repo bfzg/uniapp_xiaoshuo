@@ -1,8 +1,9 @@
 export default {
 	state:{
-		articleID:[],					//文章id
+		articleID:null,					//文章id
 		currentArticleIndex:null,		//当前文章index
-		articleLength:0					//文章总长度
+		articleLength:0,				//文章总长度
+		presentArticle:[]						//当前阅读小说章节
 	},
 	mutations:{
 		//添加文章内容
@@ -20,6 +21,10 @@ export default {
 		//获取文章总长度
 		getarticleLength(state,artLength){
 			state.articleLength = artLength
+		},
+		//获取当前阅读小说数据
+		getpresentArticle(state,data){
+			state.presentArticle = data
 		}
 	},
 	actions:{

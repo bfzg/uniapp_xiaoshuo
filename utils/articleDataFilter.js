@@ -26,4 +26,10 @@ export default class articleDataPreloading {
 		}
 		return this.data[currentIndex - 1];
 	}
+	
+	//定义 根据index返回对应index相同的数据
+	findSameIndex(index){
+		this.data = this.data.find(item=>item.index == index)
+		return this.data 
+	}
 }

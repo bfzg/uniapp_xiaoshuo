@@ -43,27 +43,32 @@
 			</view>
 			<view class="bookBottom">
 				<view class="box">
-					<view class="bookshelf">
+					<view class="bookshelf" @click="addBookShelf">
 						<view class="iconfont icon-file"></view>
 						<view class="text">
 							加入书架
 						</view>
 					</view>
 					<view class="startRead">
-						<u-button type="primary" shape="circle" text="开始阅读"></u-button>
+						<u-button @click="startRead" type="primary" shape="circle" text="开始阅读"></u-button>
 					</view>
 				</view>
 			</view>
 		</view>
-		<!-- 弹出层 -->
+		<!-- 弹出层 目录-->
 		<catalog ref="catalog" :sourceData="bookInfo.chapterList"></catalog>
 	</view>
 </template>
 
 <script>
-	import {
-		getBookListInfo
-	} from '@/request/api.js';
+	import {getBookListInfo} from '@/request/api.js';
+	import {store,mutations} from '@/uni_modules/uni-id-pages/common/store.js'
+	import {whetherToLogin} from '@/utils/Toos.js'
+	import sqliteDB from '@/sqlite/sqlite.js'
+	const collectBook = uniCloud.importObject('collect-book', {
+		customUI: true
+	});
+	const db = uniCloud.database();
 	export default {
 		data() {
 			return {
@@ -73,14 +78,15 @@
 		},
 		onLoad(e) {
 			this.getBookInfo(e.id);
+	
 		},
 		methods: {
-			//获取数据
+			/**
+			 * 获取数据
+			 * @param {String} id 书籍 id
+			 * */
 			async getBookInfo(id) {
-				let {
-					data: res
-				} = await getBookListInfo(id);
-
+				let {data: res} = await getBookListInfo(id);
 				this.count = res.count;
 				//给每个章节对象都加上index
 				for (let i = 0; i < res.data.chapterList.length; i++) {
@@ -105,6 +111,80 @@
 			//点击显示弹出框
 			clickPopup() {
 				this.$refs.catalog.fartherClick()
+			},
+			//开始阅读
+			startRead(){
+				uni.navigateTo({
+					url:"/pages/textPage/textPage?id=" + this.bookInfo.chapterList[0].chapterId + "&chaptertitle=" + this.bookInfo.chapterList[0].title + "&index=" + this.bookInfo.chapterList[0].index+"&bookId=" + this.bookInfo.fictionId
+				})
+			},
+			//添加到书架
+			async addBookShelf() {
+				let infoObj = this.deepCopy(this.bookInfo);
+				this.createTable();
+				this.insertTableData();
+				// 保存到云端
+				// if(!store.hasLogin) {
+				// 	whetherToLogin();
+				// 	return;
+				// }
+				// let res = await db.collection('xiaoshuo-collect').add({
+				// 	...infoObj
+				// });
+			},	
+			//创建表
+			createTable(){
+				let open = sqliteDB.isOpen();
+				if(open){
+					let sql = '"id" INTEGER PRIMARY KEY AUTOINCREMENT,"title" text,"author" text,"chapterList" Memo,"cover" text,"descs" Memo,"fictionId" text,"fictionType" text,"updateTime" text,"chapterindex" integer,"chaptertitle" text,"chapterid" text';
+					sqliteDB.createTable("bookshelf",sql).then(res=>{
+						console.log("创建表成功!");
+					}).catch(error=>{
+						console.log("创建表失败!");
+					});
+				}else{
+					console.log("数据库未打开!");
+				}
+			},
+			
+			//新增数据
+			insertTableData(){
+				let open = sqliteDB.isOpen();
+				if(open){
+					let presentReadInfo = this.$store.state.article.presentArticle;
+					let infoObj = this.deepCopy(this.bookInfo);
+					infoObj.chapterList = JSON.stringify(infoObj.chapterList)
+					infoObj.chapterindex = presentReadInfo.index ? presentReadInfo.index : this.bookInfo.chapterList[0].index;
+					infoObj.chaptertitle=presentReadInfo.title ? presentReadInfo.title : this.bookInfo.chapterList[0].title;
+					infoObj.chapterid=presentReadInfo.chapterId ? presentReadInfo.chapterId : this.bookInfo.chapterList[0].chapterId;
+					let keys = Object.keys(infoObj);
+					let values = Object.values(infoObj);
+					let valuesStr = values.map(v=>`'${v}'`).join(",");
+					sqliteDB.insertTableData("bookshelf",valuesStr,keys).then(res=>{
+						console.log('新增数据成功!');
+						uni.showToast({
+							title:'添加成功!',
+							icon:'success'
+						})
+					}).catch(error=>{
+						console.log('新增数据失败!');
+						console.log(error);
+					})
+				}else{
+					console.log("数据未打开!");
+				}
+			},
+			
+			delete(){
+				sqliteDB.dropTable("bookshelf");
+			},
+			
+			// 实现对象的深拷贝，并且截取文章列表第一项
+			deepCopy(obj) {
+				let str = JSON.stringify(obj);
+				let result = JSON.parse(str);
+				
+				return result;
 			}
 		}
 	}
@@ -234,19 +314,24 @@
 			align-items: center;
 			justify-content: space-between;
 			text-align: center;
-			.bookshelf{
+
+			.bookshelf {
 				flex: 1;
-				.icon-file{
+
+				.icon-file {
 					font-size: 60rpx;
 					font-weight: 600;
 				}
-				.text{
+
+				.text {
 					font-size: 28rpx;
 				}
 			}
-			.startRead{
+
+			.startRead {
 				flex: 1;
-				.u-button{
+
+				.u-button {
 					width: 280rpx;
 				}
 			}

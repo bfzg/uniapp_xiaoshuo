@@ -5,13 +5,13 @@
 		</view>
 		<view class="bottom_list" v-show="show">
 			<view class="fun_list">
-				<view>
+				<view @click="showCatalog">
 					<i class="iconfont icon-list-unordered"></i>
-					目录
+					<span>目录</span>
 				</view>
-				<view>
+				<view @click="showSet">
 					<i class="iconfont icon-shezhi"></i>
-					设置
+					<span>设置</span>
 				</view>
 			</view>
 		</view>
@@ -21,6 +21,8 @@
 			:enableClick="enableClick" :clickOption="clickOption" @preload="preloadContent" @clickTo="clickTo"
 			@change="currentChange" @loadmore="loadmoreContent">
 		</yingbing-ReadPage>
+		<!-- 弹出层 目录-->
+		<catalog ref="catalog" :currentBookId="currentBookId" :sourceData="catalog"></catalog>
 	</view>
 </template>
 
@@ -32,6 +34,7 @@
 		removeBracketsAndQuotes
 	} from '@/utils/Toos.js'
 	import articleDataPreloading from '@/utils/articleDataFilter.js'
+	import sqliteDB from '@/sqlite/sqlite.js'
 	export default {
 		data() {
 			return {
@@ -52,13 +55,24 @@
 					left: 'auto',
 					top: 'auto'
 				},
-				title: '', //文章标题
+				title: '', //章节标题
 				id: '', // 文章id
 				index: null, //当前最新文章index
-				show: true, //控制设置窗口的显示预隐藏
+				show: false, //控制设置窗口的显示预隐藏
 				oldIndex: null, //点击目录章节，返回上一页改变
-				BoolIf: true //控制只有翻到上一页才请求数据
+				BoolIf: true, //控制只有翻到上一页才请求数据
+				articleLength: 0, //小说章节总长度，
+				catalog: this.$store.state.article.articleID, // 小说总章节
+				currentReadProgress: {
+					currentIndex: 0, //当前正在阅读的章节index
+					chaptertitle: '' //当前正在阅读的章节title
+				},
+				currentBookId: null, //当前小说id
 			}
+		},
+		beforeDestroy() {
+			console.log('页面离开');
+			this.exitSaveReadProgress(this.currentReadProgress, this.currentBookId);
 		},
 		async onReady() {
 			//初始化页面
@@ -72,7 +86,6 @@
 			const {
 				page
 			} = this.$refs;
-			console.log(contents);
 			page.init({
 				contents: contents,
 				start: 0,
@@ -80,33 +93,35 @@
 			})
 		},
 		onLoad(e) {
+			console.log(e);
 			this.id = e.id
-			this.title = e.title
+			this.title = e.chaptertitle
 			this.index = e.index
 			this.oldIndex = e.index
+			this.currentBookId = e.bookId
 			// #ifdef APP-PLUS
 			plus.navigator.setFullscreen(true) //隐藏状态栏
 			// #endif
+			this.articleLength = this.$store.state.article.articleLength
 		},
 		methods: {
 			//监听翻页事件
 			currentChange(e) {
 				this.currentPage = e.currentPage
 				this.totalPage = e.totalPage
+				this.currentReadProgress.currentIndex = e.chapter
+				this.currentReadProgress.chaptertitle = e.title
 				if (e.currentPage == 0) {
 					this.BoolIf = false
 				}
 			},
-			setCatalog(e) {
-				console.log('页面目录触发了');
-				console.log(e);
-			},
 			//加载上一章节内容
+			//TODO 这里BoolIf会一直开启吗？
 			loadmoreContent(chapter, callback) {
 				if (this.BoolIf) {
 					return;
 				}
-				let classArticle = new articleDataPreloading(this.$store.state.article.articleID);
+				let classArticle = new articleDataPreloading(this.catalog);
 				chapter = classArticle.findPreviousByindex(this.oldIndex);
 				setTimeout(async () => {
 					callback('success', {
@@ -115,20 +130,20 @@
 						custom: [],
 						title: chapter.title,
 						isStart: chapter.index == 0,
-						isEnd: chapter.index == 1000
+						isEnd: chapter.index == this.articleLength
 					});
 					this.oldIndex = chapter.index;
 				}, 2000)
 			},
 			//页面预加载
 			preloadContent(chapters, callback) {
-				let classArticle = new articleDataPreloading(this.$store.state.article.articleID);
+				console.log(this.$store.state.article.articleID);
+				let classArticle = new articleDataPreloading(this.catalog);
 				chapters = classArticle.filterByIndex(this.index);
 				setTimeout(async () => {
 					console.log('我触发了');
 					let contents = []
 					for (let i in chapters) {
-						console.log(i);
 						contents.push({
 							chapter: chapters[i].index,
 							start: 0,
@@ -136,14 +151,12 @@
 							custom: [],
 							title: chapters[i].title,
 							isStart: chapters[i].index == 0,
-							isEnd: chapters[i].index == 1000,
-							// this.getContent(chapters[i].id)
+							isEnd: chapters[i].index == this.articleLength
 						})
 					}
-					console.log(contents);
 					this.index = contents[2].chapter;
 					callback('success', contents)
-				}, 2000)
+				}, 0)
 			},
 			//请求数据方法
 			async getContent(id) {
@@ -161,11 +174,37 @@
 					}, 2000);
 				}
 			},
+			//点击显示目录
+			showCatalog() {
+				this.$refs.catalog.fartherClick()
+			},
 			//返回到详情页
 			goBack() {
 				uni.navigateBack({
 					delta: 1
 				})
+			},
+			//退出保存阅读进度
+			exitSaveReadProgress(infoObj, bookId) {
+				let open = sqliteDB.isOpen();
+				if (open) {
+					sqliteDB.selectTableData("bookshelf", "fictionId", bookId).then(res => {
+						let classArticle = new articleDataPreloading(this.catalog);
+						let chapterid = classArticle.findSameIndex(infoObj.currentIndex);
+						sqliteDB.insertOrReplaceData([chapterid.index, "'"+chapterid.title+"'", "'"+chapterid.chapterId+"'"], "'"+bookId+"'").then(res => {
+							console.log('保存进度成功!');
+						}).catch(error => {
+							console.log('保存进度失败');
+							console.log(error);
+						})
+					})
+				} else {
+					console.log('数据库未打开');
+				}
+			},
+			//显示设置
+			showSet(){
+				
 			},
 			//设置字体大小
 			addFontsize() {
@@ -192,7 +231,7 @@
 	}
 </script>
 
-<style>
+<style lang="scss">
 	.page {
 		/* #ifdef APP-NVUE */
 		flex: 1;
@@ -233,14 +272,15 @@
 		height: 150rpx;
 		width: 100%;
 		line-height: 150rpx;
-		background-color: black;
 		color: #fff;
 		bottom: 0;
+		left: 0;
 		background-color: rgba(100, 100, 100, 0.8);
 
 		.fun_list {
 			display: flex;
 			justify-content: space-evenly;
+			align-items: center;
 		}
 	}
 </style>

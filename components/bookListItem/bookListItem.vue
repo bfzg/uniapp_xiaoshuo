@@ -1,11 +1,11 @@
 <template>
 	<view class="box">
 		<view class="item">
-			<view class="img">
+			<view class="img" @click="goDetail(item)">
 				<image :src="item.cover">
 				</image>
 			</view>
-			<view class="text">
+			<view class="text" @click="goDetail(item)">
 				<view class="title">
 					{{item.title}}
 				</view>
@@ -19,13 +19,13 @@
 					</span>
 				</view>
 			</view>
-			<view class="btn" @click="show = true">
+			<view class="btn" @click.stop="show = true">
 				<i class="iconfont icon-sortlight"></i>
 			</view>
 
 		</view>
 		<!-- 弹出框 -->
-		<u-popup :show="show" @close="close" @open="open">
+		<u-popup :closeable="true" :show="show" @close="close">
 			<view>
 				<view class="bookInfo">
 					<view class="bookInfo_img">
@@ -46,18 +46,13 @@
 				<view class="btn_list">
 					<view class="top">
 						<span>置顶</span>
-						<u-switch v-model="switchs" @change="change"></u-switch>
+						<u-switch v-model="switchs"></u-switch>
 					</view>
 					<view class="like">
 						<span>加入书架</span>
 						<!-- <span>移除书架</span> -->
 						<!-- <i class="iconfont icon-favor_light"></i> -->
 						<i class="iconfont icon-favor_fill_light"></i>
-						
-					</view>
-					<view class="catalog">
-						<span>目录</span>
-						<i class="iconfont icon-sortlight"></i>
 					</view>
 				</view>
 			</view>
@@ -73,25 +68,41 @@
 				default () {
 					return {}
 				}
+			},
+			jumpType: {
+				type: Boolean,
+				default () {
+					return true
+				}
 			}
 		},
 		data() {
 			return {
 				show: false,
-				switchs:false
+				switchs: false,
 			}
 		},
 		methods: {
-			open() {
-				console.log('open');
-			},
 			close() {
 				this.show = false
-				console.log('close');
 			},
-			change(e) {
-				console.log('change', e);
-			},
+
+			//跳转到详情页
+			goDetail(item) {
+				if (this.jumpType) {
+					uni.navigateTo({
+						url: "/pages/detail/detail?id=" + item.fictionId
+					})
+				} else {
+					console.log(item);
+					console.log(JSON.parse(item.chapterList));
+					this.$store.commit("addArticleID",JSON.parse(item.chapterList));
+					uni.navigateTo({
+						url: "/pages/textPage/textPage?id=" + item.chapterid + "&chaptertitle=" + item.chaptertitle +"&index=" + item.chapterindex+"&bookId=" + item.fictionId
+					})
+				}
+
+			}
 		}
 	}
 </script>
@@ -139,78 +150,88 @@
 
 		.upTime {
 			color: #666;
-			i{
+
+			i {
 				color: #6cccff;
 			}
 		}
 	}
-	
-	
-//详情样式
-.bookInfo{
-	display: flex;
-	align-items: center;
-	justify-content: space-around;
-	padding: 10px;
-	box-sizing: border-box;
-	.bookInfo_img{
-		width: 200rpx;
-		height: 240rpx;
-		image {
-			width: 100%;
-			height: 100%;
-		}
-	}
-	.bookInfo_text{
-		line-height: 50rpx;
-		width: 420rpx;
-		margin-left: 10rpx;
-		.title {
-			font-size: 32rpx;
-			font-weight: 600;
-		
-		}
-		.center {
-			font-size: 30rpx;
-			color: #666;
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-		}
-		
-	}
-}
 
-.btn_list{
-	padding: 30rpx 30rpx;
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
-	justify-content: space-evenly;
-	view{
-		width: 180rpx;
-		height: 80rpx;
-		// background-color: #6cccff;
-		line-height: 80rpx;
-		color: #999;
-		text-align: center;
-	}
-	.top{
+
+	//详情样式
+	.bookInfo {
 		display: flex;
 		align-items: center;
-		justify-content: space-between;
-	}
-	.like{
-		i{
-			font-size: 38rpx;
-			color: #6cccff;
+		justify-content: space-around;
+		padding: 10px;
+		box-sizing: border-box;
+
+		.bookInfo_img {
+			width: 200rpx;
+			height: 240rpx;
+
+			image {
+				width: 100%;
+				height: 100%;
+			}
+		}
+
+		.bookInfo_text {
+			line-height: 50rpx;
+			width: 420rpx;
+			margin-left: 10rpx;
+
+			.title {
+				font-size: 32rpx;
+				font-weight: 600;
+
+			}
+
+			.center {
+				font-size: 30rpx;
+				color: #666;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
 		}
 	}
-	.catalog{
-		i{
-			font-size: 36rpx;
-			color: #6cccff;
+
+	.btn_list {
+		padding: 30rpx 30rpx;
+		box-sizing: border-box;
+		display: flex;
+		align-items: center;
+		justify-content: space-evenly;
+
+		view {
+			width: 180rpx;
+			height: 80rpx;
+			// background-color: #6cccff;
+			line-height: 80rpx;
+			color: #999;
+			text-align: center;
+		}
+
+		.top {
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+		}
+
+		.like {
+			i {
+				font-size: 38rpx;
+				color: #6cccff;
+			}
+		}
+
+		.catalog {
+			i {
+				font-size: 36rpx;
+				color: #6cccff;
+			}
 		}
 	}
-}
 </style>

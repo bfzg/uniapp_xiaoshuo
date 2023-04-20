@@ -175,9 +175,12 @@
 				}
 			}
 
-			.btn {
-				width: 400rpx;
+			.btn {				
 				margin: 50rpx auto;
+				.u-button{
+					width: 500rpx;
+					height: 80rpx;
+				}
 			}
 		}
 	}

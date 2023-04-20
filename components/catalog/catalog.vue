@@ -1,8 +1,8 @@
 <template>
 	<view>
-		<u-popup :show="show" mode="left" @close="close" >
+		<u-popup :show="show" mode="left" @close="close">
 			<view>
-				<scroll-view :scroll-anchoring="true"  class="scroll-container" scroll-y="true" @scroll="scrollEvent"
+				<scroll-view :scroll-anchoring="true" class="scroll-container" scroll-y="true" @scroll="scrollEvent"
 					:style="{ height: containerHeight}">
 					<!--可视区域里所有数据的渲染区域-->
 					<view class="list" :style="{ top: top + 'px', ...customStyle }">
@@ -32,7 +32,12 @@
 			sourceData: {
 				type: Array,
 				required: true, //是否必填
-				default: () => [] //默认值
+				default: () => []
+			},
+			// 当前小说id
+			currentBookId:{
+				type:String,
+				default:()=>''
 			},
 			// 滚动容器总高度
 			containerHeight: {
@@ -101,11 +106,12 @@
 				this.show = false
 			},
 			//跳转到文章页面
-			goTextPage(id, title,index) {
-				//存储当前index
-				this.$store.commit("getCurrentArticleIndex",index);
-				uni.navigateTo({
-					url: "/pages/textPage/textPage?id=" + id + "&title=" + title +"&index=" + index
+			goTextPage(id, title, index) {
+				//存储当前阅读数据
+				this.$store.commit("getCurrentArticleIndex", index);
+				this.$store.commit("getpresentArticle",{id,title,index})
+				uni.redirectTo({
+					url: "/pages/textPage/textPage?id=" + id + "&chaptertitle=" + title + "&index=" + index+"&bookId=" + this.currentBookId
 				})
 			},
 		}
@@ -113,23 +119,26 @@
 </script>
 
 <style lang="scss">
-.titleStyle{
-	height: 100rpx;
-	padding-left: 20rpx;
-}
-.back_btn{
-	width: 100%;
-	height: 180rpx;
-	position: sticky;
-	top: 0;
-	line-height: 200rpx;
-	padding-left: 30rpx;
-	background-color: #fff;
-	i{
-		font-size: 46rpx;
+	.titleStyle {
+		height: 100rpx;
+		padding-left: 20rpx;
 	}
-}
-.content_box{
-	
-}
+
+	.back_btn {
+		width: 100%;
+		height: 180rpx;
+		position: sticky;
+		top: 0;
+		line-height: 200rpx;
+		padding-left: 30rpx;
+		background-color: #fff;
+
+		i {
+			font-size: 46rpx;
+		}
+	}
+
+	.content_box {
+		margin-top: 10rpx;
+	}
 </style>

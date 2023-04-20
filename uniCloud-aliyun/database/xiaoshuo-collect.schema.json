@@ -1,0 +1,85 @@
+{
+	"bsonType": "object",
+	"required": [
+		"user_id",
+		"article_id"
+	],
+	"permission": {
+		"read": true,
+		"create": "auth.uid != null",
+		"update": false,
+		"delete": "doc.user_id == auth.uid"
+	},
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"fictionId": {
+			"bsonType": "string",
+			"description": "文章id，参考opendb-news-articles表",
+			"foreignKey": "opendb-news-articles._id"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "收藏者id，参考uni-id-users表",
+			"foreignKey": "uni-id-users._id",
+			"defaultValue": {
+				"$env": "uid"
+			}
+		},
+		"create_date": {
+			"bsonType": "timestamp",
+			"description": "收藏时间",
+			"defaultValue": {
+				"$env": "now"
+			}
+		},
+		"title": {
+		  "bsonType": "string",
+		  "description": "小说名称"
+		},
+		"fictionType": {
+		  "bsonType": "string",
+		  "description": "小说分类"
+		},
+		"chapterList": {
+		  "bsonType": "object",
+		  "description": "文章章节id，参考opendb-news-articles.chapters._id"
+		},
+		"chapterindex": {
+		  "bsonType": "int",
+		  "description": "文章章节index"
+		},
+		"chaptertitle": {
+		  "bsonType": "string",
+		  "description": "文章章节标题"
+		},
+		"chapterid":{
+			"bsonType": "string",
+			"description": "当前章节id"
+		},
+		"numPage": {
+		  "bsonType": "int",
+		  "description": "阅读到章节的第几页",
+		  "minimum": 1,
+		  "defaultValue":1
+		},
+		"author":{
+			"bsonType": "string",
+			"description": "作者姓名"
+		},
+		"cover":{
+			"bsonType": "string",
+			"description": "缩略图地址"
+		},
+		"updateTime":{
+			"bsonType": "string",
+			"description": "最后一次更新时间"
+		},
+		"descs":{
+			"bsonType": "string",
+			"description": "小说简介"
+		}
+	},
+	"version": "0.0.1"
+}
