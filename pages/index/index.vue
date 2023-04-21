@@ -1,10 +1,9 @@
 <template>
 	<view class="content">
 		<view v-for="item in bookInfo" :key="item.id">
-			<bookListItem :jumpType="false" :item="item"></bookListItem>
+			<bookListItem :deleteType="true" :jumpType="false" :item="item"></bookListItem>
 		</view>
-		<view class="add iconfont icon-refresh" @click="selectTableData">
-		</view>
+		<view class="add iconfont icon-refresh" @click="selectTableData"></view>
 	</view>
 </template>
 
@@ -17,11 +16,12 @@
 				bookInfo:[]
 			}
 		},
-		onReady(){
+		onShow(){
 			this.selectTableData()
 		},
 		onLoad() {
 			this.openSQL()
+			this.selectTableData()
 		},
 		methods: {
 			//打开sqlite数据库
@@ -37,15 +37,10 @@
 				}
 			},
 			//查询表数据
-			selectTableData() {
+			async selectTableData() {
 				let open = sqliteDB.isOpen();
 				if (open) {
-					sqliteDB.selectTableData("bookshelf").then(res => {
-						console.log(res);
-						this.bookInfo = res;
-					}).catch(error => {
-						console.log('查询失败!');
-					})
+					this.bookInfo = await sqliteDB.selectTableData("bookshelf");
 				} else {
 					console.log('数据库未打开!');
 				}
@@ -69,7 +64,7 @@
 		line-height: 120rpx;
 		color: #fff;
 		font-size: 42rpx;
-		bottom: 100rpx;
-		right: 60rpx;
+		bottom: 120rpx;
+		right: 70rpx;
 	}
 </style>

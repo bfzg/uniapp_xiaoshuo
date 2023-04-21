@@ -117,34 +117,28 @@ module.exports = {
 
 	// 修改表数据
 	insertOrReplaceData(data, id) {
-  // 判断有没有传参
-  if (data !== undefined && id !== undefined) {
-    // 构造sql语句，使用占位符
-	console.log(11111111);
-	console.log(data);
-	console.log(22222222);
-	console.log(id);
-    var sql = `UPDATE bookshelf SET chapterindex = ${data[0]}, chaptertitle = ${data[1]}, chapterid = ${data[2]} WHERE fictionId = ${id}`;
-    // console.log(sql);
-    return new Promise((resolve, reject) => {
-      // 表格添加数据
-      plus.sqlite.executeSql({
-        name: this.dbName,
-        sql: sql,
-        success(e) {
-          resolve(e);
-        },
-        fail(e) {
-          reject(e);
-        }
-      })
-    })
-  } else {
-    return new Promise((resolve, reject) => {
-      reject("错误添加")
-    })
-  }
-},
+		if (data !== undefined && id !== undefined) {
+			var sql =
+				`UPDATE bookshelf SET chapterindex = ${data[0]}, chaptertitle = ${data[1]}, chapterid = ${data[2]} WHERE fictionId = ${id}`;
+			return new Promise((resolve, reject) => {
+				// 表格添加数据
+				plus.sqlite.executeSql({
+					name: this.dbName,
+					sql: sql,
+					success(e) {
+						resolve(e);
+					},
+					fail(e) {
+						reject(e);
+					}
+				})
+			})
+		} else {
+			return new Promise((resolve, reject) => {
+				reject("错误添加")
+			})
+		}
+	},
 	// 查询获取数据库里的数据
 	selectTableData(dbTable, title, titleValue) {
 		if (dbTable !== undefined) {
@@ -177,19 +171,10 @@ module.exports = {
 	},
 
 	// 删除表里的数据
-	deleteTableData(dbTable, lname, lvalue, ww, ee) {
+	deleteTableData(dbTable,value) {
 		if (dbTable !== undefined) {
-			if (lname == undefined) {
-				var sql = `DELETE FROM ${dbTable}`;
-			} else {
-				if (ww !== undefined) {
-					// 两个检索条件
-					var sql = `DELETE FROM ${dbTable} WHERE ${lname} = '${lvalue}' AND ${ww} = '${ee}'`;
-				} else {
-					// 一个检索条件
-					var sql = `DELETE FROM ${dbTable} WHERE ${lname} = '${lvalue}'`;
-				}
-			}
+			// 一个检索条件
+			var sql = `DELETE FROM ${dbTable} WHERE fictionId = '${value}'`;
 			return new Promise((resolve, reject) => {
 				// 删除表数据
 				plus.sqlite.executeSql({

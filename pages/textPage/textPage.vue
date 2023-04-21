@@ -21,6 +21,43 @@
 			:enableClick="enableClick" :clickOption="clickOption" @preload="preloadContent" @clickTo="clickTo"
 			@change="currentChange" @loadmore="loadmoreContent">
 		</yingbing-ReadPage>
+		<!-- 弹出层 设置 -->
+		<u-popup :show="setShow" @close="close" :closeable="true" :round="10" mode="bottom">
+			<view class="set_box">
+				<view class="font">
+					<view>
+						<span>字体</span>
+						<u-number-box v-model="fontsize" name="fontSize"></u-number-box>
+					</view>
+					<view class="lineHeight">
+						<span>行高</span>
+						<u-number-box v-model="lineHeight" name="lineHeight"></u-number-box>
+					</view>
+				</view>
+				<view class="backColor">
+					<span>背景</span>
+					<view class="item default" @click="changeSkin('#413e38','#fcd281')"></view>
+					<view class="item gray" @click="changeSkin('#404047','#e6ebef')"></view>
+					<view class="item pink" @click="changeSkin('#3a3840','#f7e7e7')"></view>
+					<view class="item black" @click="changeSkin('#ffffff','#413d31')"></view>
+					<view class="item white" @click="changeSkin('#4d4c53','#f6fbf7')"></view>
+					<view class="item yellow" @click="changeSkin('#525055','#f7ebdd')"></view>
+				</view>
+				<view class="pages">
+					<span>翻页</span>
+					<view class="item" :class="pageType=='real' ? 'selectColor' : ''" @click="changePageType('real')">
+						仿真
+					</view>
+					<view class="item" :class="pageType=='cover' ? 'selectColor' : ''" @click="changePageType('cover')">
+						覆盖
+					</view>
+					<view class="item" :class="pageType=='scroll' ? 'selectColor' : ''" @click="changePageType('scroll')">
+						滚动
+					</view>
+				</view>
+			</view>
+		</u-popup>
+
 		<!-- 弹出层 目录-->
 		<catalog ref="catalog" :currentBookId="currentBookId" :sourceData="catalog"></catalog>
 	</view>
@@ -68,6 +105,7 @@
 					chaptertitle: '' //当前正在阅读的章节title
 				},
 				currentBookId: null, //当前小说id
+				setShow: false //设置弹出层的显示与隐藏
 			}
 		},
 		beforeDestroy() {
@@ -93,7 +131,7 @@
 			})
 		},
 		onLoad(e) {
-			console.log(e);
+			this.readSet();
 			this.id = e.id
 			this.title = e.chaptertitle
 			this.index = e.index
@@ -102,6 +140,7 @@
 			// #ifdef APP-PLUS
 			plus.navigator.setFullscreen(true) //隐藏状态栏
 			// #endif
+			
 			this.articleLength = this.$store.state.article.articleLength
 		},
 		methods: {
@@ -191,7 +230,9 @@
 					sqliteDB.selectTableData("bookshelf", "fictionId", bookId).then(res => {
 						let classArticle = new articleDataPreloading(this.catalog);
 						let chapterid = classArticle.findSameIndex(infoObj.currentIndex);
-						sqliteDB.insertOrReplaceData([chapterid.index, "'"+chapterid.title+"'", "'"+chapterid.chapterId+"'"], "'"+bookId+"'").then(res => {
+						sqliteDB.insertOrReplaceData([chapterid.index, "'" + chapterid.title + "'", "'" + chapterid
+							.chapterId + "'"
+						], "'" + bookId + "'").then(res => {
 							console.log('保存进度成功!');
 						}).catch(error => {
 							console.log('保存进度失败');
@@ -203,29 +244,50 @@
 				}
 			},
 			//显示设置
-			showSet(){
-				
+			showSet() {
+				this.setShow = true;
 			},
-			//设置字体大小
-			addFontsize() {
-				this.fontsize += 4;
+			close() {
+				this.setShow = false;
+				this.saveSet();
+			},
+			//保存设置
+			saveSet(){
+				uni.setStorage({
+					key:'textPageSet',
+					data:JSON.stringify({
+						fontsize:this.fontsize,
+						lineHeight:this.lineHeight,
+						pageType:this.pageType,
+						color:this.color,
+						bgColor:this.bgColor
+					}),
+					success:()=>{
+						console.log('存储设置成功!');
+					}
+				})
+			},
+			//读取设置
+			readSet(){
+				let data = uni.getStorageSync('textPageSet');
+				if(!data){
+					return;
+				}
+				let res = JSON.parse(data);
+				this.fontsize=res.fontsize;
+				this.lineHeight=res.lineHeight;
+				this.pageType=res.pageType;
+				this.color=res.color;
+				this.bgColor=res.bgColor
 			},
 			//设置翻页方式
-			changePageType() {
-				this.pageType = this.pageType == 'real' ? 'scroll' : 'real';
-			},
-			//设置字体大小
-			reduceFontSize() {
-				this.fontsize -= 4;
-			},
-			//设置行高
-			changeLineHeight() {
-				this.lineHeight += 4;
+			changePageType(type) {
+				this.pageType = type;
 			},
 			//更改背景颜色
-			changeSkin() {
-				this.color = '#f5f5f5';
-				this.bgColor = '#999';
+			changeSkin(fontColor, bgColog) {
+				this.color = fontColor;
+				this.bgColor = bgColog;
 			},
 		}
 	}
@@ -282,5 +344,96 @@
 			justify-content: space-evenly;
 			align-items: center;
 		}
+	}
+
+	// 设置弹出框
+	.set_box {
+		height: 400rpx;
+		padding: 95rpx 25rpx 0 25rpx;
+
+		.font {
+			display: flex;
+			align-items: center;
+			view {
+				display: flex;
+				align-items: center;
+
+				span {
+					font-weight: 600;
+					margin-right: 15rpx;
+				}
+			}
+			.lineHeight{
+				margin-left: 30rpx;
+			}
+		}
+
+		.backColor {
+			margin-top: 30rpx;
+			display: flex;
+			align-items: center;
+
+			span {
+				font-weight: 600;
+				margin-right: 20rpx;
+			}
+
+			.item {
+				width: 60rpx;
+				height: 60rpx;
+				border-radius: 50%;
+				border: 1px solid #999;
+				margin: 10rpx;
+			}
+
+			.default {
+				background-color: #fcd281;
+			}
+
+			.gray {
+				background-color: #e6ebef;
+			}
+
+			.pink {
+				background-color: #f7e7e7;
+			}
+
+			.black {
+				background-color: #413d31;
+			}
+
+			.white {
+				background-color: #f6fbf7;
+			}
+
+			.yellow {
+				background-color: #f7ebdd;
+			}
+		}
+	
+		.pages{
+			display: flex;
+			align-items: center;
+			margin-top: 30rpx;
+			span{
+				font-weight: 600;
+			}
+			.item{
+				width: 80rpx;
+				height: 60rpx;
+				border-radius: 35rpx;
+				line-height: 60rpx;
+				text-align: center;
+				border: 1px solid #999;
+				margin: 10rpx;
+				font-size: 28rpx;
+				transition: all 0.4s;
+			}
+		}
+	}
+	.selectColor{
+		background-color: #41a5ee;
+		color: #eee;
+		border: 1px solid #41a5ee;
 	}
 </style>

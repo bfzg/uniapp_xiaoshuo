@@ -39,20 +39,17 @@
 							{{item.descs}}
 						</view>
 					</view>
-					<view class="bookInfo_detail">
+					<view class="bookInfo_detail" @click="goBtnDetail(item.fictionId)">
 						<u-button type="primary" :plain="true" text="详情"></u-button>
 					</view>
 				</view>
 				<view class="btn_list">
-					<view class="top">
+					<view class="top" v-if="deleteType">
 						<span>置顶</span>
 						<u-switch v-model="switchs"></u-switch>
 					</view>
-					<view class="like">
-						<span>加入书架</span>
-						<!-- <span>移除书架</span> -->
-						<!-- <i class="iconfont icon-favor_light"></i> -->
-						<i class="iconfont icon-favor_fill_light"></i>
+					<view v-if="deleteType">
+						<u-button @click="deleteBook(item.fictionId)" type="error" shape="circle" text="删除"></u-button>
 					</view>
 				</view>
 			</view>
@@ -61,6 +58,7 @@
 </template>
 
 <script>
+	import sqliteDB from '@/sqlite/sqlite.js'
 	export default {
 		props: {
 			item: {
@@ -74,12 +72,18 @@
 				default () {
 					return true
 				}
+			},
+			deleteType:{
+				type:Boolean,
+				default (){
+					return false
+				}
 			}
 		},
 		data() {
 			return {
 				show: false,
-				switchs: false,
+				switchs: false,  //是否置顶
 			}
 		},
 		methods: {
@@ -94,14 +98,32 @@
 						url: "/pages/detail/detail?id=" + item.fictionId
 					})
 				} else {
-					console.log(item);
-					console.log(JSON.parse(item.chapterList));
-					this.$store.commit("addArticleID",JSON.parse(item.chapterList));
+					this.$store.commit("addArticleID", JSON.parse(item.chapterList));
 					uni.navigateTo({
-						url: "/pages/textPage/textPage?id=" + item.chapterid + "&chaptertitle=" + item.chaptertitle +"&index=" + item.chapterindex+"&bookId=" + item.fictionId
+						url: "/pages/textPage/textPage?id=" + item.chapterid + "&chaptertitle=" + item
+							.chaptertitle + "&index=" + item.chapterindex + "&bookId=" + item.fictionId
 					})
 				}
-
+			},
+			//点击跳转到详情页
+			goBtnDetail(fictionId) {
+				uni.navigateTo({
+					url: "/pages/detail/detail?id=" + fictionId
+				})
+			},
+			//删除书籍
+			async deleteBook(fictionId) {
+				let open = sqliteDB.isOpen();
+				if (open) {
+					let res = await sqliteDB.deleteTableData("bookshelf",fictionId);
+					uni.showToast({
+						title: '请刷新!',
+						icon: 'none',
+						duration: 2000
+					})  
+				} else {
+					console.log('数据库未打开!');
+				}
 			}
 		}
 	}
@@ -218,20 +240,6 @@
 			display: flex;
 			align-items: center;
 			justify-content: space-between;
-		}
-
-		.like {
-			i {
-				font-size: 38rpx;
-				color: #6cccff;
-			}
-		}
-
-		.catalog {
-			i {
-				font-size: 36rpx;
-				color: #6cccff;
-			}
 		}
 	}
 </style>

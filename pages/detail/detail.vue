@@ -43,7 +43,7 @@
 			</view>
 			<view class="bookBottom">
 				<view class="box">
-					<view class="bookshelf" @click="addBookShelf">
+					<view class="bookshelf" @click="addBookShelf(bookInfo.fictionId)">
 						<view class="iconfont icon-file"></view>
 						<view class="text">
 							加入书架
@@ -61,9 +61,16 @@
 </template>
 
 <script>
-	import {getBookListInfo} from '@/request/api.js';
-	import {store,mutations} from '@/uni_modules/uni-id-pages/common/store.js'
-	import {whetherToLogin} from '@/utils/Toos.js'
+	import {
+		getBookListInfo
+	} from '@/request/api.js';
+	import {
+		store,
+		mutations
+	} from '@/uni_modules/uni-id-pages/common/store.js'
+	import {
+		whetherToLogin
+	} from '@/utils/Toos.js'
 	import sqliteDB from '@/sqlite/sqlite.js'
 	const collectBook = uniCloud.importObject('collect-book', {
 		customUI: true
@@ -78,15 +85,14 @@
 		},
 		onLoad(e) {
 			this.getBookInfo(e.id);
-	
+
 		},
 		methods: {
-			/**
-			 * 获取数据
-			 * @param {String} id 书籍 id
-			 * */
+			//获取数据
 			async getBookInfo(id) {
-				let {data: res} = await getBookListInfo(id);
+				let {
+					data: res
+				} = await getBookListInfo(id);
 				this.count = res.count;
 				//给每个章节对象都加上index
 				for (let i = 0; i < res.data.chapterList.length; i++) {
@@ -113,13 +119,27 @@
 				this.$refs.catalog.fartherClick()
 			},
 			//开始阅读
-			startRead(){
+			startRead() {
 				uni.navigateTo({
-					url:"/pages/textPage/textPage?id=" + this.bookInfo.chapterList[0].chapterId + "&chaptertitle=" + this.bookInfo.chapterList[0].title + "&index=" + this.bookInfo.chapterList[0].index+"&bookId=" + this.bookInfo.fictionId
+					url: "/pages/textPage/textPage?id=" + this.bookInfo.chapterList[0].chapterId +
+						"&chaptertitle=" + this.bookInfo.chapterList[0].title + "&index=" + this.bookInfo
+						.chapterList[0].index + "&bookId=" + this.bookInfo.fictionId
 				})
 			},
 			//添加到书架
-			async addBookShelf() {
+			async addBookShelf(fictionId) {
+				let res = await sqliteDB.selectTableData("bookshelf");
+				let check = res.some(e=>{
+					return e.fictionId == fictionId
+				})
+				if(check){
+					uni.showToast({
+						title: '您已经添加过了!',
+						icon: 'error',
+						duration: 2000
+					})  
+					return;
+				}
 				let infoObj = this.deepCopy(this.bookInfo);
 				this.createTable();
 				this.insertTableData();
@@ -131,59 +151,63 @@
 				// let res = await db.collection('xiaoshuo-collect').add({
 				// 	...infoObj
 				// });
-			},	
+			},
 			//创建表
-			createTable(){
+			createTable() {
 				let open = sqliteDB.isOpen();
-				if(open){
-					let sql = '"id" INTEGER PRIMARY KEY AUTOINCREMENT,"title" text,"author" text,"chapterList" Memo,"cover" text,"descs" Memo,"fictionId" text,"fictionType" text,"updateTime" text,"chapterindex" integer,"chaptertitle" text,"chapterid" text';
-					sqliteDB.createTable("bookshelf",sql).then(res=>{
+				if (open) {
+					let sql =
+						'"id" INTEGER PRIMARY KEY AUTOINCREMENT,"title" text,"author" text,"chapterList" Memo,"cover" text,"descs" Memo,"fictionId" text,"fictionType" text,"updateTime" text,"chapterindex" integer,"chaptertitle" text,"chapterid" text';
+					sqliteDB.createTable("bookshelf", sql).then(res => {
 						console.log("创建表成功!");
-					}).catch(error=>{
+					}).catch(error => {
 						console.log("创建表失败!");
 					});
-				}else{
+				} else {
 					console.log("数据库未打开!");
 				}
 			},
-			
+
 			//新增数据
-			insertTableData(){
+			insertTableData() {
 				let open = sqliteDB.isOpen();
-				if(open){
+				if (open) {
 					let presentReadInfo = this.$store.state.article.presentArticle;
 					let infoObj = this.deepCopy(this.bookInfo);
 					infoObj.chapterList = JSON.stringify(infoObj.chapterList)
-					infoObj.chapterindex = presentReadInfo.index ? presentReadInfo.index : this.bookInfo.chapterList[0].index;
-					infoObj.chaptertitle=presentReadInfo.title ? presentReadInfo.title : this.bookInfo.chapterList[0].title;
-					infoObj.chapterid=presentReadInfo.chapterId ? presentReadInfo.chapterId : this.bookInfo.chapterList[0].chapterId;
+					infoObj.chapterindex = presentReadInfo.index ? presentReadInfo.index : this.bookInfo.chapterList[0]
+						.index;
+					infoObj.chaptertitle = presentReadInfo.title ? presentReadInfo.title : this.bookInfo.chapterList[0]
+						.title;
+					infoObj.chapterid = presentReadInfo.chapterId ? presentReadInfo.chapterId : this.bookInfo.chapterList[
+						0].chapterId;
 					let keys = Object.keys(infoObj);
 					let values = Object.values(infoObj);
-					let valuesStr = values.map(v=>`'${v}'`).join(",");
-					sqliteDB.insertTableData("bookshelf",valuesStr,keys).then(res=>{
+					let valuesStr = values.map(v => `'${v}'`).join(",");
+					sqliteDB.insertTableData("bookshelf", valuesStr, keys).then(res => {
 						console.log('新增数据成功!');
 						uni.showToast({
-							title:'添加成功!',
-							icon:'success'
+							title: '添加成功!',
+							icon: 'success'
 						})
-					}).catch(error=>{
+					}).catch(error => {
 						console.log('新增数据失败!');
 						console.log(error);
 					})
-				}else{
+				} else {
 					console.log("数据未打开!");
 				}
 			},
-			
-			delete(){
+
+			delete() {
 				sqliteDB.dropTable("bookshelf");
 			},
-			
+
 			// 实现对象的深拷贝，并且截取文章列表第一项
 			deepCopy(obj) {
 				let str = JSON.stringify(obj);
 				let result = JSON.parse(str);
-				
+
 				return result;
 			}
 		}

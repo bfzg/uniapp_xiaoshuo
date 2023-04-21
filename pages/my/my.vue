@@ -33,6 +33,10 @@
 					<span>设置</span>
 					<i class="iconfont icon-icon-test5"></i>
 				</view>
+				<view class="item">
+					<span>感谢</span>
+					<i class="iconfont icon-icon-test5"></i>
+				</view>
 				<view class="btn" @click="logout">
 					<u-button type="error" shape="circle" text="退出登录"></u-button>
 				</view>
