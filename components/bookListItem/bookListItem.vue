@@ -59,6 +59,7 @@
 
 <script>
 	import sqliteDB from '@/sqlite/sqlite.js'
+	import {goToReadRouter} from '@/utils/Toos.js';
 	export default {
 		props: {
 			item: {
@@ -90,25 +91,27 @@
 			close() {
 				this.show = false
 			},
-
 			//跳转到详情页
 			goDetail(item) {
 				if (this.jumpType) {
 					uni.navigateTo({
-						url: "/pages/detail/detail?id=" + item.fictionId
+						url: "/pages/detail/detail?currentBookId=" + item.fictionId
 					})
 				} else {
-					this.$store.commit("addArticleID", JSON.parse(item.chapterList));
-					uni.navigateTo({
-						url: "/pages/textPage/textPage?id=" + item.chapterid + "&chaptertitle=" + item
-							.chaptertitle + "&index=" + item.chapterindex + "&bookId=" + item.fictionId
+					this.$store.commit("getChapterList",JSON.parse(item.chapterList));
+					this.$store.commit("getCurrentBookId",item.fictionId);
+					this.$store.commit("getpresentArticle",{
+						title:item.chaptertitle,
+						chapterId:item.chapterid,
+						index:item.chapterindex
 					})
+					goToReadRouter(item.chapterid,item.chaptertitle,item.chapterindex,item.fictionId);
 				}
 			},
 			//点击跳转到详情页
 			goBtnDetail(fictionId) {
 				uni.navigateTo({
-					url: "/pages/detail/detail?id=" + fictionId
+					url: "/pages/detail/detail?currentBookId=" + fictionId
 				})
 			},
 			//删除书籍
@@ -172,8 +175,9 @@
 
 		.upTime {
 			color: #666;
-
+			font-size: 30rpx;
 			i {
+				font-size: 30rpx;
 				color: #6cccff;
 			}
 		}

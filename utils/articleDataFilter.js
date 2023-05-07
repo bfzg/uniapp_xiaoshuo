@@ -32,4 +32,12 @@ export default class articleDataPreloading {
 		this.data = this.data.find(item=>item.index == index)
 		return this.data 
 	}
+	
+	//定义 根据id查找匹配的值，如果有返回true，没有false
+	findCurrentReadChapter(id){
+		let result = this.data.find((e)=>{
+			return e.chapterId == id;
+		})
+		return result
+	}
 }

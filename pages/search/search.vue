@@ -5,7 +5,7 @@
 			<u-button type="primary" text="搜索" @click="goToDetail"></u-button>
 		</view>
 		<view class="hint">
-			<span>使用须知</span><br>
+			<span>使用须知 版本1.2.1</span><br>
 			<span>根据小说标题实现搜索</span>
 		</view>
 	</view>

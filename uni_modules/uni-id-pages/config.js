@@ -17,12 +17,12 @@ export default {
     // "douyin",
 
     // #ifdef APP
-    'univerify',
+    // 'univerify',
     // #endif
     'weixin',
     'username',
     // #ifdef APP
-    'apple',
+    // 'apple',
     // #endif
     'smsCode'
   ],

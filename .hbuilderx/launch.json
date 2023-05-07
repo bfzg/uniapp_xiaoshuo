@@ -4,16 +4,19 @@
     "version" : "0.0",
     "configurations" : [
         {
-            "app-plus" : {
-                "launchtype" : "local"
-            },
-            "default" : {
-                "launchtype" : "local"
-            },
-            "h5" : {
-                "launchtype" : "local"
-            },
-            "type" : "uniCloud"
+        	"app-plus" : 
+        	{
+        		"launchtype" : "local"
+        	},
+        	"default" : 
+        	{
+        		"launchtype" : "local"
+        	},
+        	"h5" : 
+        	{
+        		"launchtype" : "local"
+        	},
+        	"type" : "uniCloud"
         },
         {
             "playground" : "custom",

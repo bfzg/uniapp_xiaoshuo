@@ -1,0 +1,96 @@
+{
+	"bsonType": "object",
+	"required": [
+		"name",
+		"mobile",
+		"area_code",
+		"address"
+	],
+	"properties": {
+		"_id": {
+			"description": "ID，系统自动生成"
+		},
+		"user_id": {
+			"bsonType": "string",
+			"description": "用户id，参考uni-id-users表"
+		},
+		"name": {
+			"bsonType": "string",
+			"description": "收货人",
+			"title": "收货人",
+			"trim": "both"
+		},
+		"alias": {
+			"bsonType": "string",
+			"description": "地址别名，例如：家、公司、学校",
+			"title": "地址别名",
+			"trim": "both"
+		},
+		"mobile": {
+			"bsonType": "string",
+			"description": "手机号码，加密存储",
+			"title": "手机号",
+			"pattern": "^\\+?[0-9-]{3,20}$",
+			"trim": "both"
+		},
+		"mobile_area_code": {
+			"bsonType": "string",
+			"description": "国际区号，中国大陆为 +86",
+			"title": "国际区号",
+			"trim": "both"
+		},
+		"province_code": {
+			"bsonType": "string",
+			"description": "省级编码，冗余存储",
+			"title": "省"
+		},
+		"city_code": {
+			"bsonType": "string",
+			"description": "地级编码，冗余存储",
+			"title": "市"
+		},
+		"area_code": {
+			"bsonType": "string",
+			"description": "区级编码",
+			"title": "省市区",
+			"foreignKey": "opendb-city-china.code",
+			"enumType": "tree",
+			"enum": {
+				"collection": "opendb-city-china",
+				"orderby": "value asc",
+				"field": "code as value, name as text, eq(type, 2) as isleaf"
+			}
+		},
+		"address": {
+			"bsonType": "string",
+			"description": "省市区后面的详细住址，包含街道小区房间号",
+			"title": "详细住址",
+			"trim": "both"
+		},
+		"formatted_address": {
+			"bsonType": "string",
+			"description": "完整地址信息，包括省市区及街道小区房间号",
+			"trim": "both"
+		},
+		"zip_code": {
+			"bsonType": "string",
+			"description": "邮编",
+			"title": "邮编",
+			"trim": "both"
+		},
+		"email": {
+			"bsonType": "string",
+			"description": "邮箱",
+			"title": "邮箱",
+			"format": "email",
+			"trim": "both"
+		},
+		"is_default": {
+			"bsonType": "bool",
+			"description": "是否为默认地址",
+			"title": "默认地址",
+			"defaultValue": false
+		}
+	},
+	"version": "0.0.1"
+}

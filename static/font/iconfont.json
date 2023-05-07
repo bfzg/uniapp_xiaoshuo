@@ -6,6 +6,13 @@
   "description": "",
   "glyphs": [
     {
+      "icon_id": "2183059",
+      "name": "Bing",
+      "font_class": "Bing",
+      "unicode": "e619",
+      "unicode_decimal": 58905
+    },
+    {
       "icon_id": "30415",
       "name": "comment_fill",
       "font_class": "commentfill",

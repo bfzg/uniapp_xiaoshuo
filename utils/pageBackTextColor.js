@@ -1,0 +1,26 @@
+export default  [
+	{
+		textColor:'#413e38',
+		backColor:'#fcd281'
+	},
+	{
+		textColor:'#404047',
+		backColor:'#e6ebef'
+	},
+	{
+		textColor:'#3a3840',
+		backColor:'#f7e7e7'
+	},
+	{
+		textColor:'#6d6d75',
+		backColor:'#000000'
+	},
+	{
+		textColor:'#4d4c53',
+		backColor:'#f6fbf7'
+	},
+	{
+		textColor:'#525055',
+		backColor:'#f7ebdd'
+	},
+]

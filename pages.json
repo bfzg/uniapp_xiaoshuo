@@ -5,7 +5,7 @@
 			"style": {
 				"navigationBarTitleText": "书架",
 				"navigationBarBackgroundColor": "#00ACF6",
-				"enablePullDownRefresh": false,
+				"enablePullDownRefresh": true,
 				"navigationBarTextStyle": "white"
 			}
 		}, {
@@ -23,7 +23,24 @@
 				"enablePullDownRefresh": false
 			}
 
-		}, {
+		}, 
+		{
+					"path": "uni_modules/uni-upgrade-center-app/pages/upgrade-popup",
+					"style": {
+						"disableScroll": true,
+						"app-plus": {
+							"backgroundColorTop": "transparent",
+							"background": "transparent",
+							"titleNView": false,
+							"scrollIndicator": false,
+							"popGesture": "none",
+							"animationType": "fade-in",
+							"animationDuration": 200
+		
+						}
+					}
+				},
+		{
 			"path": "pages/list/list",
 			"style": {
 				"navigationBarTitleText": "",
@@ -81,37 +98,38 @@
     "style": {
         "navigationBarTitleText": ""
     }
-}
-,{
-    "path": "uni_modules/uni-id-pages/pages/login/login-smscode",
-    "style": {
-        "navigationBarTitleText": "手机验证码登录"
-    }
-}
-,{
+},
+// ,{
+//     "path": "uni_modules/uni-id-pages/pages/login/login-smscode",
+//     "style": {
+//         "navigationBarTitleText": "手机验证码登录"
+//     }
+// }
+// ,
+{
     "path": "uni_modules/uni-id-pages/pages/register/register",
     "style": {
         "navigationBarTitleText": "注册"
     }
 }
-,{
-    "path": "uni_modules/uni-id-pages/pages/register/register-by-email",
-    "style": {
-        "navigationBarTitleText": "邮箱验证码注册"
-    }
-}
+// ,{
+//     "path": "uni_modules/uni-id-pages/pages/register/register-by-email",
+//     "style": {
+//         "navigationBarTitleText": "邮箱验证码注册"
+//     }
+// }
 ,{
     "path": "uni_modules/uni-id-pages/pages/retrieve/retrieve",
     "style": {
         "navigationBarTitleText": "重置密码"
     }
 }
-,{
-    "path": "uni_modules/uni-id-pages/pages/retrieve/retrieve-by-email",
-    "style": {
-        "navigationBarTitleText": "通过邮箱重置密码"
-    }
-}
+// ,{
+//     "path": "uni_modules/uni-id-pages/pages/retrieve/retrieve-by-email",
+//     "style": {
+//         "navigationBarTitleText": "通过邮箱重置密码"
+//     }
+// }
 ,{
     "path": "uni_modules/uni-id-pages/pages/common/webview/webview",
     "style": {
@@ -140,14 +158,57 @@
         "navigationBarTitleText": "设置密码"
     }
 }
+// ,{
+//     "path": "uni_modules/uni-id-pages/pages/userinfo/realname-verify/realname-verify",
+//     "style": {
+//         "enablePullDownRefresh": false,
+//         "navigationBarTitleText": "实名认证"
+//     }
+// }
 ,{
-    "path": "uni_modules/uni-id-pages/pages/userinfo/realname-verify/realname-verify",
+    "path": "uni_modules/uni-feedback/pages/opendb-feedback/opendb-feedback",
     "style": {
-        "enablePullDownRefresh": false,
-        "navigationBarTitleText": "实名认证"
+        "navigationBarTitleText": "新增"
     }
 }
-],
+// ,{
+//     "path": "uni_modules/uni-feedback/pages/opendb-feedback/edit",
+//     "style": {
+//         "navigationBarTitleText": "编辑"
+//     }
+// }
+,{
+    "path": "uni_modules/uni-feedback/pages/opendb-feedback/list",
+    "style": {
+        "navigationBarTitleText": "列表"
+    }
+}
+,{
+    "path": "uni_modules/uni-feedback/pages/opendb-feedback/detail",
+    "style": {
+        "navigationBarTitleText": "详情"
+    }
+}
+    ,{
+            "path" : "pages/thank/thank",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "",
+                "enablePullDownRefresh": false,
+				"navigationBarBackgroundColor": "#fff"
+            }
+            
+        }
+        ,{
+            "path" : "pages/setUp/setUp",
+            "style" :                                                                                    
+            {
+                "navigationBarTitleText": "设置",
+                "enablePullDownRefresh": false
+            }
+            
+        }
+    ],
 	"globalStyle": {
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",

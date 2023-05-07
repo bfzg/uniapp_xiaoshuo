@@ -1,9 +1,9 @@
 <template>
 	<view class="page">
-		<view class="top_title" v-show="show">
+		<view class="top_title" v-show="setWinShow">
 			<i class="iconfont icon-back" @click="goBack"></i>
 		</view>
-		<view class="bottom_list" v-show="show">
+		<view class="bottom_list" v-show="setWinShow">
 			<view class="fun_list">
 				<view @click="showCatalog">
 					<i class="iconfont icon-list-unordered"></i>
@@ -17,12 +17,12 @@
 		</view>
 
 		<yingbing-ReadPage style="height: 100%;" ref="page" :page-type="pageType" :font-size="fontsize"
-			:line-height="lineHeight" :color="color" :bg-color="bgColor" :slide="slide" :enablePreload="enablePreload"
+			:line-height="lineHeight" :color="color" :topGap="topGap" :bg-color="bgColor" :slide="slide" :enablePreload="enablePreload"
 			:enableClick="enableClick" :clickOption="clickOption" @preload="preloadContent" @clickTo="clickTo"
 			@change="currentChange" @loadmore="loadmoreContent">
 		</yingbing-ReadPage>
 		<!-- 弹出层 设置 -->
-		<u-popup :show="setShow" @close="close" :closeable="true" :round="10" mode="bottom">
+		<u-popup :show="setWinListShow" @close="close" :closeable="true" :round="10" mode="bottom">
 			<view class="set_box">
 				<view class="font">
 					<view>
@@ -36,12 +36,7 @@
 				</view>
 				<view class="backColor">
 					<span>背景</span>
-					<view class="item default" @click="changeSkin('#413e38','#fcd281')"></view>
-					<view class="item gray" @click="changeSkin('#404047','#e6ebef')"></view>
-					<view class="item pink" @click="changeSkin('#3a3840','#f7e7e7')"></view>
-					<view class="item black" @click="changeSkin('#ffffff','#413d31')"></view>
-					<view class="item white" @click="changeSkin('#4d4c53','#f6fbf7')"></view>
-					<view class="item yellow" @click="changeSkin('#525055','#f7ebdd')"></view>
+					<view v-for="(item,index) in pageColor" :key="index" class="item" :style="{backgroundColor:item.backColor}" @click="changeSkin(item.textColor,item.backColor)"></view>
 				</view>
 				<view class="pages">
 					<span>翻页</span>
@@ -59,19 +54,16 @@
 		</u-popup>
 
 		<!-- 弹出层 目录-->
-		<catalog ref="catalog" :currentBookId="currentBookId" :sourceData="catalog"></catalog>
+		<catalog ref="catalog" :currentBookId="currentBookId" :sourceData="allChapterList"></catalog>
 	</view>
 </template>
 
 <script>
-	import {
-		getBookData
-	} from '@/request/api.js'
-	import {
-		removeBracketsAndQuotes
-	} from '@/utils/Toos.js'
+	import {getBookData} from '@/request/api.js'
+	import {removeBracketsAndQuotes} from '@/utils/Toos.js'
 	import articleDataPreloading from '@/utils/articleDataFilter.js'
 	import sqliteDB from '@/sqlite/sqlite.js'
+	import pageColor from '@/utils/pageBackTextColor.js'
 	export default {
 		data() {
 			return {
@@ -81,77 +73,77 @@
 				lineHeight: 15,
 				color: '#333',
 				slide: 20,
+				topGap:30,
 				bgColor: '#fcd281',
 				enablePreload: true,
 				totalPage: 0,
 				currentPage: 0,
 				enableClick: true,
 				clickOption: {
-					width: uni.upx2px(200),
-					height: uni.upx2px(200),
+					width: uni.upx2px(100),
+					height: uni.upx2px(400),
 					left: 'auto',
 					top: 'auto'
 				},
-				title: '', //章节标题
-				id: '', // 文章id
-				index: null, //当前最新文章index
-				show: false, //控制设置窗口的显示预隐藏
-				oldIndex: null, //点击目录章节，返回上一页改变
-				BoolIf: true, //控制只有翻到上一页才请求数据
-				articleLength: 0, //小说章节总长度，
-				catalog: this.$store.state.article.articleID, // 小说总章节
-				currentReadProgress: {
-					currentIndex: 0, //当前正在阅读的章节index
-					chaptertitle: '' //当前正在阅读的章节title
-				},
-				currentBookId: null, //当前小说id
-				setShow: false //设置弹出层的显示与隐藏
+				currentBookId:this.$store.state.article.currentBookId,//当前小说id
+				allChapterList:this.$store.state.article.allChapterList,   //所有章节，目录
+				allChapterListLength:this.$store.state.article.allChapterList.length,   	//章节总长度
+				currentChapterIndex:null,   //正在阅读的章节index
+				currentChapterTitle:'',		//正在阅读章节标题
+				currentChapterId:'',		//正在阅读章节id
+				setWinShow:false,			//控制设置窗口的显示与隐藏
+				setWinListShow:false,		//控制设置列表的显示与隐藏
+				oldChapterindex:null,		//点击目录章节，返回上一页改变
+				BoolIf:false,				//是否加载上一章节
+				pageColor
 			}
 		},
+		onHide() {
+			this.exitSaveReadProgress(this.currentBookId);
+		},
 		beforeDestroy() {
-			console.log('页面离开');
-			this.exitSaveReadProgress(this.currentReadProgress, this.currentBookId);
+			this.exitSaveReadProgress(this.currentBookId);
 		},
 		async onReady() {
 			//初始化页面
 			let contents = [{
-				chapter: Number(this.index),
-				content: await this.getContent(this.id),
-				title: this.title,
-				isStart: this.index == 0,
-				isEnd: this.index == 1000
+				chapter: Number(this.currentChapterIndex),
+				content: await this.getContent(this.currentChapterId),
+				title: this.currentChapterTitle,
+				isStart: this.currentChapterIndex == 0,
+				isEnd: this.currentChapterIndex == this.allChapterListLength
 			}, ]
-			const {
-				page
-			} = this.$refs;
+			const {page} = this.$refs;
 			page.init({
 				contents: contents,
 				start: 0,
-				currentChapter: this.index // currentChapter: '小说定位章节序号'
+				currentChapter: this.currentChapterIndex // currentChapter: '小说定位章节序号'
 			})
 		},
 		onLoad(e) {
-			this.readSet();
-			this.id = e.id
-			this.title = e.chaptertitle
-			this.index = e.index
-			this.oldIndex = e.index
-			this.currentBookId = e.bookId
+			this.currentChapterIndex = e.currentChapterIndex;
+			this.oldChapterindex=e.currentChapterIndex;
+			this.currentChapterTitle = e.currentChapterTitle;
+			this.currentChapterId = e.currentChapterId;
+			this.readSet();				//加载用户页面个性化设置
 			// #ifdef APP-PLUS
 			plus.navigator.setFullscreen(true) //隐藏状态栏
 			// #endif
-			
-			this.articleLength = this.$store.state.article.articleLength
 		},
 		methods: {
 			//监听翻页事件
 			currentChange(e) {
 				this.currentPage = e.currentPage
 				this.totalPage = e.totalPage
-				this.currentReadProgress.currentIndex = e.chapter
-				this.currentReadProgress.chaptertitle = e.title
+				if(e.chapter != this.currentChapterIndex){
+					let chapterid = this.allChapterList[e.chapter]
+					this.currentChapterIndex = chapterid.index;
+					this.currentChapterTitle = chapterid.title;
+					this.currentChapterId = chapterid.chapterId;
+					this.$store.commit("getpresentArticle",chapterid);
+				}
 				if (e.currentPage == 0) {
-					this.BoolIf = false
+					this.BoolIf = false;
 				}
 			},
 			//加载上一章节内容
@@ -160,8 +152,8 @@
 				if (this.BoolIf) {
 					return;
 				}
-				let classArticle = new articleDataPreloading(this.catalog);
-				chapter = classArticle.findPreviousByindex(this.oldIndex);
+				let classArticle = new articleDataPreloading(this.allChapterList);
+				chapter = classArticle.findPreviousByindex(this.oldChapterindex);
 				setTimeout(async () => {
 					callback('success', {
 						chapter: chapter.index,
@@ -169,16 +161,15 @@
 						custom: [],
 						title: chapter.title,
 						isStart: chapter.index == 0,
-						isEnd: chapter.index == this.articleLength
+						isEnd: chapter.index == this.allChapterListLength
 					});
-					this.oldIndex = chapter.index;
+					this.oldChapterindex = chapter.index;
 				}, 2000)
 			},
 			//页面预加载
 			preloadContent(chapters, callback) {
-				console.log(this.$store.state.article.articleID);
-				let classArticle = new articleDataPreloading(this.catalog);
-				chapters = classArticle.filterByIndex(this.index);
+				let classArticle = new articleDataPreloading(this.allChapterList);
+				chapters = classArticle.filterByIndex(this.currentChapterIndex);
 				setTimeout(async () => {
 					console.log('我触发了');
 					let contents = []
@@ -190,10 +181,10 @@
 							custom: [],
 							title: chapters[i].title,
 							isStart: chapters[i].index == 0,
-							isEnd: chapters[i].index == this.articleLength
+							isEnd: chapters[i].index == this.allChapterListLength
 						})
 					}
-					this.index = contents[2].chapter;
+					this.currentChapterIndex = contents[2].chapter;
 					callback('success', contents)
 				}, 0)
 			},
@@ -206,16 +197,19 @@
 
 			// 页面点击事件
 			clickTo() {
-				this.show = !this.show;
-				if (this.show) {
-					setTimeout(() => {
-						this.show = false
-					}, 2000);
-				}
+			  this.setWinShow = !this.setWinShow;
+			  // 清除之前的定时器
+			  clearTimeout(this.timer);
+			  if (this.setWinShow) {
+			    // 保存当前的定时器
+			    this.timer = setTimeout(() => {
+			      this.setWinShow = false
+			    }, 4000);
+			  }
 			},
 			//点击显示目录
 			showCatalog() {
-				this.$refs.catalog.fartherClick()
+				this.$refs.catalog.open()
 			},
 			//返回到详情页
 			goBack() {
@@ -224,31 +218,20 @@
 				})
 			},
 			//退出保存阅读进度
-			exitSaveReadProgress(infoObj, bookId) {
+			async exitSaveReadProgress(bookId) {
 				let open = sqliteDB.isOpen();
 				if (open) {
-					sqliteDB.selectTableData("bookshelf", "fictionId", bookId).then(res => {
-						let classArticle = new articleDataPreloading(this.catalog);
-						let chapterid = classArticle.findSameIndex(infoObj.currentIndex);
-						sqliteDB.insertOrReplaceData([chapterid.index, "'" + chapterid.title + "'", "'" + chapterid
-							.chapterId + "'"
-						], "'" + bookId + "'").then(res => {
-							console.log('保存进度成功!');
-						}).catch(error => {
-							console.log('保存进度失败');
-							console.log(error);
-						})
-					})
+					let ret = await sqliteDB.insertOrReplaceData([this.currentChapterIndex, "'" + this.currentChapterTitle + "'", "'" + this.currentChapterId + "'"], "'" + bookId + "'");
 				} else {
 					console.log('数据库未打开');
 				}
 			},
 			//显示设置
 			showSet() {
-				this.setShow = true;
+				this.setWinListShow = true;
 			},
 			close() {
-				this.setShow = false;
+				this.setWinListShow = false;
 				this.saveSet();
 			},
 			//保存设置
@@ -384,30 +367,6 @@
 				border-radius: 50%;
 				border: 1px solid #999;
 				margin: 10rpx;
-			}
-
-			.default {
-				background-color: #fcd281;
-			}
-
-			.gray {
-				background-color: #e6ebef;
-			}
-
-			.pink {
-				background-color: #f7e7e7;
-			}
-
-			.black {
-				background-color: #413d31;
-			}
-
-			.white {
-				background-color: #f6fbf7;
-			}
-
-			.yellow {
-				background-color: #f7ebdd;
 			}
 		}
 	

@@ -1,30 +1,26 @@
 export default {
 	state:{
-		articleID:null,					//文章id
-		currentArticleIndex:null,		//当前文章index
-		articleLength:0,				//文章总长度
-		presentArticle:[]						//当前阅读小说章节
+		currentBookId:null,				//当前正在阅读小说的id
+		allChapterList:null,			//文章所有章节
+		allChapterListLength:0,			//当前章节总长度
+		presentArticle:{}				//当前阅读小说章节信息（index，title，id)
 	},
 	mutations:{
-		//添加文章内容
-		addArticleID(state,value){
-			state.articleID = value;
-		},
-		//删除文章内容
-		removeArticleID(state,id){
-			
-		},
-		//获取当前文章index
-		getCurrentArticleIndex(state,index){
-			state.currentArticleIndex = index
+		//获取文章所有章节
+		getChapterList(state,value){
+			state.allChapterList = value;
 		},
 		//获取文章总长度
-		getarticleLength(state,artLength){
-			state.articleLength = artLength
+		getChapterListLength(state,value){
+			state.allChapterListLength = value
 		},
 		//获取当前阅读小说数据
 		getpresentArticle(state,data){
 			state.presentArticle = data
+		},
+		//获取当前正在阅读小说id
+		getCurrentBookId(state,value){
+			state.currentBookId = value
 		}
 	},
 	actions:{

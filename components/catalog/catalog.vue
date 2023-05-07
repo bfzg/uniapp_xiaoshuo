@@ -1,144 +1,133 @@
 <template>
-	<view>
-		<u-popup :show="show" mode="left" @close="close">
-			<view>
-				<scroll-view :scroll-anchoring="true" class="scroll-container" scroll-y="true" @scroll="scrollEvent"
-					:style="{ height: containerHeight}">
-					<!--可视区域里所有数据的渲染区域-->
-					<view class="list" :style="{ top: top + 'px', ...customStyle }">
-						<view class="back_btn">
-							<i class="iconfont icon-back" @click="fartherClick"></i>
-						</view>
-						<!--单条数据渲染区域-->
-						<view class="content_box">
-							<view v-for="(item, index) in sourceData" :key="index"
-								@click="goTextPage(item.chapterId,item.title,item.index)">
-								<view class="titleStyle">
-									{{item.title}}
-								</view>
-							</view>
-						</view>
-					</view>
-				</scroll-view>
+	<uni-popup ref="popup" class="popup" :mask-click="true" background-color="#fff" type="left">
+		<view>
+			<view class="back_btn">
+				<i class="iconfont icon-back" @click="close"></i>
 			</view>
-		</u-popup>
-	</view>
+			<scroll-view ref="scrollView" :scroll-anchoring="true" @scrolltolower="scrolltolower" :lower-threshold="260"
+				:scroll-into-view="'tab'+readChapterIndex" class="scroll-container" scroll-y="true">
+				<!-- 单条数据渲染区域 -->
+				<view :id="'tab'+item.chapterId" v-for="(item, index) in renderingData" :key="index"
+					@click="goTextPage(item.chapterId,item.title,item.index)" class="titleStyle"
+					:class="item.chapterId == currentChapterId ? 'current_chapter' : ''">
+					{{item.title}}
+				</view>
+			</scroll-view>
+		</view>
+	</uni-popup>
 </template>
 
 <script>
+	import {goToReadRouterCatalog} from '@/utils/Toos.js';
+	import articleDataPreloading from '@/utils/articleDataFilter.js'
 	export default {
 		name: "catalog",
 		props: {
+			//所有章节
 			sourceData: {
 				type: Array,
 				required: true, //是否必填
 				default: () => []
 			},
 			// 当前小说id
-			currentBookId:{
-				type:String,
-				default:()=>''
-			},
-			// 滚动容器总高度
-			containerHeight: {
+			currentBookId: {
 				type: String,
-				default: '100vh',
+				default: () => ''
 			},
-			//每条数据所占高度
-			itemHeight: {
-				type: Number,
-				default: 200,
-				required: false
-			},
-			//每次加载到可视区域的数量，itemHeight X showNum 要大于可视区域高度 ，否则页面滚动不了
-			showNum: {
-				type: Number,
-				default: 500,
-				required: false
-			},
-			// 自定义列表样式
-			customStyle: {
-				type: Object,
-				default: () => ({})
-			}
 		},
 		data() {
 			return {
-				showList: [], //可视区域显示的数据				
-				top: 0, //偏移量
-				scrollTop: 0, //卷起的高度
-				startIndex: 0, //可视区域第一条数据的索引
-				endIndex: 0, //可视区域最后一条数据后面那条数据的的索引，因为后面要用slice(start,end)方法取需要的数据，但是slice规定end对应数据不包含在里面
-				show: false
+				currentChapterId:'', //当前正在阅读的id
+				size: 200,	//每次截取的个数
+				renderingData:[],	//截取后的数据
+				index:0,		//控制开始截取位置
+				readChapterIndex:null
 			};
 		},
-		created() {
-			//计算可视区域数据
-			this.getShowList()
-		},
 		methods: {
-			//计算可视区域数据
-			getShowList() {
-				this.startIndex = Math.floor(this.scrollTop / this.itemHeight) //可视区域第一条数据的索引
-				this.endIndex = this.startIndex + this.showNum //可视区域最后一条数据的后面那条数据的索引
-				this.showList = this.sourceData.slice(this.startIndex, this
-					.endIndex) //可视区域显示的数据，即最后要渲染的数据。实际的数据索引是从this.startIndex到this.endIndex-1
-				this.top = this.scrollTop - (this.scrollTop % this
-					.itemHeight) //在这需要获得一个可以被itemHeight整除的数来作为item的偏移量，这样随机滑动时第一条数据都是完整显示的
+			//跳转到文章页面
+			goTextPage(chapterId, title, index) {
+				//存储当前阅读数据
+				this.$store.commit("getpresentArticle", {chapterId,title,index})
+				goToReadRouterCatalog(chapterId, title, index, this.sourceData.fictionId || this.currentBookId);
 			},
-			//区域滚动事件
-			scrollEvent(e) {
-				this.scrollTop = e.detail.scrollTop
-				this.getShowList()
-			},
-			// 刷新组件
-			refresh() {
-				setTimeout(() => {
-					this.getShowList()
-					this.scrollTop = 0
-				})
-			},
-			//点击显示弹出框
-			fartherClick() {
-				this.show = !this.show
+			open() {
+				this.currentChapterId = this.$store.state.article.presentArticle.chapterId
+				this.$refs.popup.open('left');
+				this.sliceData();
+				this.thisCurrentReadChapter();
 			},
 			close() {
-				this.show = false
+				this.$refs.popup.close()
 			},
-			//跳转到文章页面
-			goTextPage(id, title, index) {
-				//存储当前阅读数据
-				this.$store.commit("getCurrentArticleIndex", index);
-				this.$store.commit("getpresentArticle",{id,title,index})
-				uni.redirectTo({
-					url: "/pages/textPage/textPage?id=" + id + "&chaptertitle=" + title + "&index=" + index+"&bookId=" + this.currentBookId
-				})
+			//列表触底触发事件
+			scrolltolower(){
+				this.sliceData();
 			},
+			//向下截取数据
+			sliceData() {
+				if(this.index >= this.sourceData.length){
+					uni.showToast({ title: "没有更多数据了", icon: "none", });
+					return; 
+				}
+				console.log('触发了触底事件!');
+				let next = this.sourceData.slice(this.index,this.index + this.size);
+				this.renderingData=[...this.renderingData,...next];
+				console.log(this.renderingData);
+				this.index += this.size
+			},
+			//指向当前正在阅读的章节
+			thisCurrentReadChapter(){
+			let  classArticle = new articleDataPreloading(this.renderingData);
+			let chapter = classArticle.findCurrentReadChapter(this.currentChapterId)
+			if(chapter != undefined){
+				this.readChapterIndex = chapter.chapterId
+			}else{
+				this.sliceData();
+				this.thisCurrentReadChapter();
+			}
+			
+			}
 		}
 	}
 </script>
 
 <style lang="scss">
+	.popup{
+		z-index: 9999;
+	}
 	.titleStyle {
-		height: 100rpx;
-		padding-left: 20rpx;
+		padding: 20rpx 0;
+		color: #444;
+		font-size: 34rpx;
+		width: 480rpx;
+		overflow: hidden;
+		word-break: break-all;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.back_btn {
-		width: 100%;
-		height: 180rpx;
-		position: sticky;
-		top: 0;
+		width: 100rpx;
+		height: 150rpx;
 		line-height: 200rpx;
 		padding-left: 30rpx;
-		background-color: #fff;
 
 		i {
 			font-size: 46rpx;
 		}
 	}
 
-	.content_box {
+	.scroll-container {
+		white-space: nowrap;
+		height: 100vh;
 		margin-top: 10rpx;
+		padding-left: 20rpx;
+	}
+
+	.current_chapter {
+		color: #000;
+		font-size: 42rpx;
+		font-weight: 700;
 	}
 </style>

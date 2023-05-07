@@ -209,5 +209,32 @@ module.exports = {
 				}
 			})
 		})
+	},
+	
+	/**
+	* @param data 更新的小说章节数据
+	* @param time 更新时间
+	* @param id 收藏数据库的id
+	*/
+	updataSQL(data,time,id){
+		if(data != undefined && id != undefined){
+			let sql = `UPDATE bookshelf SET chapterList='${data}',updateTime='${time}' WHERE id = ${id}`
+			return new Promise((resolve,reject)=>{
+				plus.sqlite.executeSql({
+					name:this.dbName,
+					sql:sql,
+					success(e) {
+						resolve(e);
+					},
+					fail(e) {
+						reject(e);
+					}
+				})
+			})
+		}else{
+			return console.log('更新失败!');
+		}
+		
 	}
 }
+

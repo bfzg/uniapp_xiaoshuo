@@ -1,39 +1,41 @@
 <template>
 	<view>
-		<!-- 顶部用户信息背景 -->
-	
 		<!-- 顶部用户头像信息 -->
 		<view class="userInfo_top">
 			<view class="avatar">
-				<u-avatar size="100" src="../../static/img/my2.png"></u-avatar>
+				<u-avatar v-if="hasLogin&&userInfo.avatar_file&&userInfo.avatar_file.url" size="100"
+					:src="userInfo.avatar_file.url"></u-avatar>
+				<u-avatar v-else size="100" src="../../static/img/my2.png"></u-avatar>
 			</view>
 			<view class="info">
-				<view class="title" v-if="hasLogin">
-					<span>yuan</span>
+				<view class="title" v-if="hasLogin" @click="goToUserDetail">
+					<span>{{userInfo.nickname||userInfo.username||userInfo.mobile}}</span>
 					<i class="iconfont icon-icon-test5"></i>
+					<view class="time">
+						<span>注册时间:</span> <uni-dateformat :date="userInfo.register_date"
+							:threshold="[3600,99*365*24*60*60*1000]"></uni-dateformat>
+					</view>
 				</view>
 				<view class="title" v-else>
 					<span @click="goLogin">登录或创建用户</span>
 					<i class="iconfont icon-icon-test5"></i>
 				</view>
-				<view class="time">
-					注册时间: 2023-4-15
-				</view>
+
 			</view>
 		</view>
-		
+
 		<!-- 功能列表区 -->
 		<view class="fun_list">
 			<view class="list">
-				<view class="item">
+				<view class="item" @click="opinionPage">
 					<span>反馈</span>
 					<i class="iconfont icon-icon-test5"></i>
 				</view>
-				<view class="item">
+				<view class="item" @click="goToSetUp">
 					<span>设置</span>
 					<i class="iconfont icon-icon-test5"></i>
 				</view>
-				<view class="item">
+				<view class="item" @click="goToThank">
 					<span>感谢</span>
 					<i class="iconfont icon-icon-test5"></i>
 				</view>
@@ -42,8 +44,11 @@
 				</view>
 			</view>
 		</view>
+		<!-- 顶部用户信息背景 -->
 		<view class="backImg">
-			<image src="../../static/img/my2.png" mode=""></image>
+			<image v-if="hasLogin&&userInfo.avatar_file&&userInfo.avatar_file.url" :src="userInfo.avatar_file.url">
+			</image>
+			<image v-else src="../../static/img/my2.png" mode=""></image>
 		</view>
 	</view>
 </template>
@@ -53,6 +58,7 @@
 		store,
 		mutations
 	} from '@/uni_modules/uni-id-pages/common/store.js'
+	import {goLoginPage} from '@/utils/Toos.js';
 	export default {
 		data() {
 			return {
@@ -63,19 +69,48 @@
 			//判断是否登录
 			hasLogin() {
 				return store.hasLogin;
+			},
+			//用户信息
+			userInfo() {
+				return store.userInfo
 			}
 		},
 		methods: {
 			//跳转到登录页
 			goLogin() {
-				console.log(11111);
 				uni.navigateTo({
 					url: "/uni_modules/uni-id-pages/pages/login/login-withpwd"
 				})
 			},
+			//跳转到用户详情
+			goToUserDetail() {
+				if (goLoginPage()) return;
+				uni.navigateTo({
+					url: "/uni_modules/uni-id-pages/pages/userinfo/userinfo"
+				})
+			},
+			//点击跳转到反馈页面
+			opinionPage() {
+				if (goLoginPage()) return;
+				uni.navigateTo({
+					url: "/uni_modules/uni-feedback/pages/opendb-feedback/opendb-feedback"
+				})
+			},
+			//跳转到设置页
+			goToSetUp(){
+				uni.navigateTo({
+					url:"/pages/setUp/setUp"
+				})
+			},
+			//跳转到感谢页面
+			goToThank(){
+				uni.navigateTo({
+					url:"/pages/thank/thank"
+				})
+			},
 			//退出登录
 			logout() {
-				if (this.goLoginPage()) return;
+				if (goLoginPage()) return;
 				uni.showModal({
 					title: "是否确定退出登录",
 					success: res => {
@@ -85,16 +120,7 @@
 					}
 				})
 			},
-			goLoginPage() {
-				if (!this.hasLogin) {
-					uni.showToast({
-						title: "未登录!",
-						icon: 'none'
-					})
-					return true;
-				}
-				return false;
-			}
+			
 		}
 	}
 </script>
@@ -103,17 +129,18 @@
 	//头部用户信息背景图
 	.backImg {
 		width: 100%;
-		height: 500rpx;
+		height: 300rpx;
 		position: absolute;
 		top: 0;
 		left: 0;
-		z-index: -1;
+		z-index: -99;
+
 		image {
 			width: 100%;
 			height: 100%;
 			-webkit-filter: blur(20px);
 			filter: blur(20px);
-			transform: scale(1.5);			
+			transform: scale(1.5);
 			opacity: 0.5;
 		}
 	}
@@ -142,11 +169,11 @@
 				i {
 					font-size: 46rpx;
 				}
-			}
 
-			.time {
-				font-size: 26rpx;
-				color: #555;
+				.time {
+					font-size: 26rpx;
+					color: #555;
+				}
 			}
 		}
 	}
@@ -156,7 +183,7 @@
 		margin-top: -40rpx;
 		padding: 30rpx;
 		background-color: #fff;
-		border-radius: 30rpx 30rpx 0 0;
+		border-radius: 60rpx 60rpx 0 0;
 
 		.list {
 			height: 100rpx;
@@ -179,9 +206,10 @@
 				}
 			}
 
-			.btn {				
+			.btn {
 				margin: 50rpx auto;
-				.u-button{
+
+				.u-button {
 					width: 500rpx;
 					height: 80rpx;
 				}

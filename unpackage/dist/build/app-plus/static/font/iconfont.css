@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 4004337 */
-  src: url('@/static/font/iconfont.woff2?t=1681543689755') format('woff2'),
-       url('@/static/font/iconfont.woff?t=1681543689755') format('woff'),
-       url('@/static/font/iconfont.ttf?t=1681543689755') format('truetype');
+  src: url('@/static/font/iconfont.woff2?t=1682423979984') format('woff2'),
+       url('@/static/font/iconfont.woff?t=1682423979984') format('woff'),
+       url('@/static/font/iconfont.ttf?t=1682423979984') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,10 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-Bing:before {
+  content: "\e619";
 }
 
 .icon-commentfill:before {

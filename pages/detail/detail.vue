@@ -36,7 +36,7 @@
 				<view class="catalog" @click="clickPopup">
 					<view class="catalog_text">目录</view>
 					<view class="catalog_list">
-						<span>共 {{count}} 章</span>
+						<span>共 {{allChapterListLength}} 章</span>
 						<i class="iconfont icon-sortlight"></i>
 					</view>
 				</view>
@@ -56,22 +56,16 @@
 			</view>
 		</view>
 		<!-- 弹出层 目录-->
-		<catalog ref="catalog" :sourceData="bookInfo.chapterList"></catalog>
+		<catalog ref="catalog"  :sourceData="bookInfo.chapterList"></catalog>
 	</view>
 </template>
 
 <script>
-	import {
-		getBookListInfo
-	} from '@/request/api.js';
-	import {
-		store,
-		mutations
-	} from '@/uni_modules/uni-id-pages/common/store.js'
-	import {
-		whetherToLogin
-	} from '@/utils/Toos.js'
+	import {getBookListInfo} from '@/request/api.js';
+	import {store} from '@/uni_modules/uni-id-pages/common/store.js'
+	import {whetherToLogin} from '@/utils/Toos.js'
 	import sqliteDB from '@/sqlite/sqlite.js'
+	import {goToReadRouter,deepCopy} from '@/utils/Toos.js';
 	const collectBook = uniCloud.importObject('collect-book', {
 		customUI: true
 	});
@@ -79,21 +73,18 @@
 	export default {
 		data() {
 			return {
-				bookInfo: {},
-				count: 0 // 文章长度
+				bookInfo: {},   //书籍信息，包含全部章节，小说相关信息
+				allChapterListLength: 0 // 文章长度
 			};
 		},
 		onLoad(e) {
-			this.getBookInfo(e.id);
-
+			this.getBookInfo(e.currentBookId);
 		},
 		methods: {
 			//获取数据
-			async getBookInfo(id) {
-				let {
-					data: res
-				} = await getBookListInfo(id);
-				this.count = res.count;
+			async getBookInfo(currentBookId) {
+				let {data:res} = await getBookListInfo(currentBookId);
+				this.allChapterListLength = res.count;
 				//给每个章节对象都加上index
 				for (let i = 0; i < res.data.chapterList.length; i++) {
 					res.data.chapterList[i].index = i
@@ -103,10 +94,9 @@
 				this.$nextTick(() => {
 					this.$refs.uReadMore.init();
 				})
-				//vuex 存储文章id
-				this.$store.commit('addArticleID', this.bookInfo.chapterList);
-				//vuex 存储文章总长度
-				this.$store.commit('getarticleLength', res.count);
+				this.$store.commit('getChapterList', this.bookInfo.chapterList);
+				this.$store.commit('getChapterListLength', res.count);
+				this.$store.commit('getpresentArticle',this.bookInfo.chapterList[0])
 			},
 			//返回上一页
 			goBack() {
@@ -116,15 +106,14 @@
 			},
 			//点击显示弹出框
 			clickPopup() {
-				this.$refs.catalog.fartherClick()
+				console.log(this.bookInfo);
+				this.$refs.catalog.open()
+				
 			},
 			//开始阅读
 			startRead() {
-				uni.navigateTo({
-					url: "/pages/textPage/textPage?id=" + this.bookInfo.chapterList[0].chapterId +
-						"&chaptertitle=" + this.bookInfo.chapterList[0].title + "&index=" + this.bookInfo
-						.chapterList[0].index + "&bookId=" + this.bookInfo.fictionId
-				})
+				goToReadRouter(this.bookInfo.chapterList[0].chapterId,this.bookInfo.chapterList[0].title,this.bookInfo
+						.chapterList[0].index,this.bookInfo.fictionId,0)
 			},
 			//添加到书架
 			async addBookShelf(fictionId) {
@@ -140,47 +129,19 @@
 					})  
 					return;
 				}
-				let infoObj = this.deepCopy(this.bookInfo);
-				this.createTable();
 				this.insertTableData();
-				// 保存到云端
-				// if(!store.hasLogin) {
-				// 	whetherToLogin();
-				// 	return;
-				// }
-				// let res = await db.collection('xiaoshuo-collect').add({
-				// 	...infoObj
-				// });
 			},
-			//创建表
-			createTable() {
-				let open = sqliteDB.isOpen();
-				if (open) {
-					let sql =
-						'"id" INTEGER PRIMARY KEY AUTOINCREMENT,"title" text,"author" text,"chapterList" Memo,"cover" text,"descs" Memo,"fictionId" text,"fictionType" text,"updateTime" text,"chapterindex" integer,"chaptertitle" text,"chapterid" text';
-					sqliteDB.createTable("bookshelf", sql).then(res => {
-						console.log("创建表成功!");
-					}).catch(error => {
-						console.log("创建表失败!");
-					});
-				} else {
-					console.log("数据库未打开!");
-				}
-			},
+			
 
 			//新增数据
 			insertTableData() {
 				let open = sqliteDB.isOpen();
 				if (open) {
-					let presentReadInfo = this.$store.state.article.presentArticle;
-					let infoObj = this.deepCopy(this.bookInfo);
+					let infoObj = deepCopy(this.bookInfo);
 					infoObj.chapterList = JSON.stringify(infoObj.chapterList)
-					infoObj.chapterindex = presentReadInfo.index ? presentReadInfo.index : this.bookInfo.chapterList[0]
-						.index;
-					infoObj.chaptertitle = presentReadInfo.title ? presentReadInfo.title : this.bookInfo.chapterList[0]
-						.title;
-					infoObj.chapterid = presentReadInfo.chapterId ? presentReadInfo.chapterId : this.bookInfo.chapterList[
-						0].chapterId;
+					infoObj.chapterindex =  this.bookInfo.chapterList[0].index;
+					infoObj.chaptertitle =  this.bookInfo.chapterList[0].title;
+					infoObj.chapterid =  this.bookInfo.chapterList[0].chapterId;
 					let keys = Object.keys(infoObj);
 					let values = Object.values(infoObj);
 					let valuesStr = values.map(v => `'${v}'`).join(",");
@@ -201,14 +162,6 @@
 
 			delete() {
 				sqliteDB.dropTable("bookshelf");
-			},
-
-			// 实现对象的深拷贝，并且截取文章列表第一项
-			deepCopy(obj) {
-				let str = JSON.stringify(obj);
-				let result = JSON.parse(str);
-
-				return result;
 			}
 		}
 	}
@@ -220,9 +173,7 @@
 		position: fixed;
 		top: 80rpx;
 		left: 40rpx;
-		z-index: 999;
 		color: #555;
-
 		i {
 			font-size: 50rpx;
 		}
@@ -238,6 +189,7 @@
 			height: 100%;
 			-webkit-filter: blur(10px);
 			filter: blur(10px);
+			transform: scale(1.5);		
 			z-index: -1;
 		}
 	}
