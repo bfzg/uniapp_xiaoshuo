@@ -45,7 +45,10 @@ npm i
 然后进入uniCloud目录下面的两个目录都右击上传所有云函数和schema
 ```
 该项目是需要搭配uniadmin的，创建的话可以自己百度一下。这里不做过多解释
-注意uniadmin需要和本项目使用一个云服务器
+注意uniadmin需要和本项目使用一个云服务器，
+## 2.ios支持
+该项目支持ios但是，但是上架商店需要充值，所以就没有ios体验放出来，你可以通过appuploader来制作证书并使用HBuilder打自定义基座
+教程放在这里了https://www.cnblogs.com/goloving/p/14324524.html
 # 三、下载体验
 https://static-mp-b6309884-49f6-494d-8b43-712bc66122c5.next.bspapp.com/
 # 四、注意事项
