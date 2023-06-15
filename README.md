@@ -13,7 +13,6 @@
 - components  #组件目录
   * bookListItem  //小说选项卡
   * catalog  //目录
-    + 项目
  - pages 		#页面视图
  	*  detail	//小说详情页
  	* index	//书架
