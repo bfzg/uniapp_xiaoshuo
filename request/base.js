@@ -1,4 +1,4 @@
-let baseURL = 'https://api.pingcc.cn/';
+let baseURL = 'http://api.pingcc.cn/';
 
 let showHttpLog = false;
 
